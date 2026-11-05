@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "914107662357",
+    "project_id": "lowland-coffee",
+    "storage_bucket": "lowland-coffee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:914107662357:android:82b4b85876760c06ed0e1c",
+        "android_client_info": {
+          "package_name": "com.example.lowland_coffee"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9CrMrMvGK5rsiiJhsx86Mr-Zsxt6Srtw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

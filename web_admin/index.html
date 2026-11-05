@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOWLAND Coffee • Quản Trị Hệ Thống (Web Admin)</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coffee: {
+              DEFAULT: '#4A2810',
+              dark: '#2E1708',
+              light: '#7A4B29'
+            },
+            amberLow: {
+              DEFAULT: '#C68B45',
+              light: '#DEAF74',
+              dark: '#A16B28'
+            },
+            cream: {
+              DEFAULT: '#FAF6F0',
+              surface: '#FFFFFF',
+              dark: '#F3ECE1'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons & Chart.js -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-cream text-stone-800 font-sans antialiased">
+
+  <!-- ==================================================== -->
+  <!-- 1. MÀN HÌNH ĐĂNG NHẬP ADMIN (AUTH SCREEN) -->
+  <!-- ==================================================== -->
+  <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-cream to-cream-dark">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl border border-stone-200/80 p-8 fade-in">
+      
+      <!-- Brand Logo & Header -->
+      <div class="text-center mb-8">
+        <img src="img/logo.png" alt="LOWLAND Coffee" class="w-24 h-24 mx-auto object-contain mb-4 rounded-full shadow-lg bg-white p-1 border-2 border-amberLow/30">
+        <h1 class="text-2xl font-black text-coffee tracking-tight">LOWLAND Coffee</h1>
+        <p class="text-xs font-semibold text-amberLow uppercase tracking-widest mt-1">Hệ Thống Quản Trị Trung Tâm</p>
+        <p class="text-xs text-stone-500 mt-2">Cổng Quản lý Dành riêng cho Ban Điều Hành & Quản Lý Chi Nhánh</p>
+      </div>
+
+      <!-- Thông báo lỗi nếu có -->
+      <div id="login-error-msg" class="hidden mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium"></div>
+
+      <!-- Form Đăng nhập -->
+      <form id="admin-login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">Email Quản trị</label>
+          <div class="relative">
+            <i data-lucide="mail" class="w-5 h-5 text-stone-400 absolute left-3.5 top-3"></i>
+            <input type="email" id="admin-email" required
+                   class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-stone-300 focus:border-coffee focus:ring-2 focus:ring-coffee/20 outline-none text-sm transition"
+                   placeholder="admin@lowlandcoffee.com" value="admin@lowlandcoffee.com">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">Mật khẩu</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-5 h-5 text-stone-400 absolute left-3.5 top-3"></i>
+            <input type="password" id="admin-password" required
+                   class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-stone-300 focus:border-coffee focus:ring-2 focus:ring-coffee/20 outline-none text-sm transition"
+                   placeholder="Nhập mật khẩu admin">
+          </div>
+        </div>
+
+        <button type="submit" id="login-submit-btn"
+                class="w-full py-3 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl font-bold text-sm shadow-md shadow-coffee/20 transition duration-150 flex items-center justify-center mt-6">
+          Đăng nhập hệ thống
+        </button>
+
+        <div class="text-center pt-2">
+          <button type="button" onclick="window.showForgotAdminGuide()" class="text-xs text-amber-800 hover:text-amber-950 hover:underline">
+            Quên mật khẩu Quản trị viên? Bấm xem hướng dẫn
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-8 pt-6 border-t border-stone-100 text-center">
+        <span class="inline-flex items-center text-xs text-stone-400 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+          Hệ thống Vận hành Trực tuyến • LOWLAND Coffee 2026
+        </span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================================================== -->
+  <!-- 2. GIAO DIỆN CHÍNH CỦA WEB ADMIN (ADMIN SCREEN) -->
+  <!-- ==================================================== -->
+  <div id="admin-screen" class="hidden min-h-screen flex">
+    
+    <!-- SIDEBAR BÊN TRÁI -->
+    <aside class="w-64 bg-white border-r border-stone-200/80 flex flex-col fixed inset-y-0 z-30">
+      
+      <!-- Brand Logo -->
+      <div class="h-20 flex items-center px-6 border-b border-stone-100 space-x-3">
+        <img src="img/logo.png" alt="LOWLAND" class="w-12 h-12 rounded-full object-contain shadow-md border border-stone-200 bg-white p-0.5">
+        <div>
+          <h2 class="font-black text-lg text-coffee tracking-tight">LOWLAND</h2>
+          <span class="text-[10px] font-bold text-amberLow uppercase tracking-widest block -mt-1">Coffee Admin</span>
+        </div>
+      </div>
+
+      <!-- Menu Navigation -->
+      <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-bold text-amber-950 bg-amber-900/10 rounded-xl transition" data-tab="dashboard">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 text-amberLow"></i>
+          Tổng quan KPI
+        </button>
+
+        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="products">
+          <i data-lucide="cup-soda" class="w-5 h-5 mr-3 text-stone-400"></i>
+          Thực đơn & Sản phẩm
+        </button>
+
+        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="orders">
+          <i data-lucide="shopping-cart" class="w-5 h-5 mr-3 text-stone-400"></i>
+          Đơn hàng Realtime
+        </button>
+
+        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="users">
+          <i data-lucide="users" class="w-5 h-5 mr-3 text-stone-400"></i>
+          Quản lý Khách hàng
+        </button>
+
+        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="vouchers">
+          <i data-lucide="ticket-percent" class="w-5 h-5 mr-3 text-stone-400"></i>
+          Mã giảm giá
+        </button>
+      </nav>
+
+      <!-- Footer Sidebar: Status & Info -->
+      <div class="p-4 border-t border-stone-100 bg-stone-50/50">
+        <div class="flex items-center space-x-2 text-xs text-stone-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Firestore & Storage Online</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- KHU VỰC NỘI DUNG CHÍNH (MAIN CONTENT) -->
+    <main class="flex-1 ml-64 min-h-screen flex flex-col">
+      
+      <!-- TOP NAVBAR -->
+      <header class="h-20 bg-white/80 backdrop-blur-md border-b border-stone-200/80 sticky top-0 z-20 px-8 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-coffee" id="topbar-title">Bảng điều khiển Quản trị</h2>
+          <p class="text-xs text-stone-400">Đồng bộ trực tiếp với ứng dụng LOWLAND Mobile</p>
+        </div>
+
+        <!-- Admin Profile Pill -->
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-3 bg-stone-50 border border-stone-200/80 rounded-2xl py-1.5 px-3">
+            <div id="header-admin-avatar" class="w-8 h-8 rounded-full bg-coffee text-amberLow font-bold flex items-center justify-center text-xs">A</div>
+            <div class="text-left pr-2">
+              <span id="header-admin-name" class="block text-xs font-bold text-stone-800">Quản Trị Viên</span>
+              <span id="header-admin-email" class="block text-[10px] text-stone-400">admin@lowlandcoffee.com</span>
+            </div>
+          </div>
+
+          <button id="btn-logout" class="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Đăng xuất">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- BODY VIEWS CONTAINER -->
+      <div class="p-8 flex-1">
+
+        <!-- ============================================== -->
+        <!-- VIEW: DASHBOARD OVERVIEW -->
+        <!-- ============================================== -->
+        <section id="view-dashboard" class="space-y-8 fade-in">
+          
+          <!-- 4 KPI Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- KPI 1: Doanh thu -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
+              <div class="p-4 bg-amberLow/10 text-amberLow rounded-2xl">
+                <i data-lucide="coins" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Tổng doanh thu</span>
+                <span id="kpi-revenue" class="text-2xl font-black text-coffee">0 đ</span>
+              </div>
+            </div>
+
+            <!-- KPI 2: Đơn thành công -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
+              <div class="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
+                <i data-lucide="check-circle" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Đơn hoàn thành</span>
+                <span id="kpi-orders" class="text-2xl font-black text-coffee">0</span>
+              </div>
+            </div>
+
+            <!-- KPI 3: Số lượng món -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
+              <div class="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                <i data-lucide="coffee" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Thực đơn</span>
+                <span id="kpi-products" class="text-2xl font-black text-coffee">0</span>
+              </div>
+            </div>
+
+            <!-- KPI 4: Khách hàng -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
+              <div class="p-4 bg-purple-50 text-purple-600 rounded-2xl">
+                <i data-lucide="users" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Khách hàng</span>
+                <span id="kpi-customers" class="text-2xl font-black text-coffee">0</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Biểu đồ Doanh thu & Bảng đơn gần nhất -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Biểu đồ Chart.js -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="font-bold text-lg text-coffee">Thống kê Doanh thu tuần</h3>
+                  <p class="text-xs text-stone-400">Doanh thu bán cà phê & thức uống theo ngày</p>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 bg-amber-50 text-amberLow rounded-lg border border-amber-200">7 ngày gần nhất</span>
+              </div>
+              <div class="h-72">
+                <canvas id="revenueChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Bảng đơn mới nhất -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg text-coffee">Đơn hàng mới</h3>
+                <span class="text-xs text-emerald-600 font-semibold flex items-center">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span> Realtime
+                </span>
+              </div>
+              <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="text-stone-400 border-b border-stone-100">
+                      <th class="py-2 px-2">Mã</th>
+                      <th class="py-2 px-2">Khách</th>
+                      <th class="py-2 px-2">Tổng</th>
+                      <th class="py-2 px-2">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-orders-body">
+                    <tr><td colspan="4" class="py-8 text-center text-stone-400">Đang tải...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ============================================== -->
+        <!-- VIEW: QUẢN LÝ THỰC ĐƠN & SẢN PHẨM (CRUD) -->
+        <!-- ============================================== -->
+        <section id="view-products" class="hidden space-y-6 fade-in">
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold text-coffee">Danh sách Món ăn & Đồ uống</h3>
+              <p class="text-xs text-stone-400">Quản lý giá, hình ảnh, phân loại và các tùy chọn món</p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <button onclick="window.seedDefaultProducts()"
+                      class="py-2.5 px-4 bg-amberLow hover:bg-amber-600 text-white rounded-xl text-sm font-bold shadow-md shadow-amberLow/20 flex items-center space-x-2 transition"
+                      title="Nạp nhanh 8 món mẫu tự động">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Nạp 8 món mẫu</span>
+              </button>
+              <button onclick="window.openAddProductModal()"
+                      class="py-2.5 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md shadow-coffee/20 flex items-center space-x-2 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Thêm món mới</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bảng danh sách sản phẩm -->
+          <div class="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
+                  <tr>
+                    <th class="py-3 px-4">Hình ảnh</th>
+                    <th class="py-3 px-4">Tên sản phẩm</th>
+                    <th class="py-3 px-4">Danh mục</th>
+                    <th class="py-3 px-4">Đơn giá</th>
+                    <th class="py-3 px-4">Trạng thái</th>
+                    <th class="py-3 px-4 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="products-table-body">
+                  <tr><td colspan="6" class="py-12 text-center text-stone-400">Đang tải danh sách món từ Firestore...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ============================================== -->
+        <!-- VIEW: QUẢN LÝ ĐƠN HÀNG REALTIME -->
+        <!-- ============================================== -->
+        <section id="view-orders" class="hidden space-y-6 fade-in">
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold text-coffee">Quản lý Đơn hàng Realtime</h3>
+              <p class="text-xs text-stone-400">Tự động nhận đơn hàng mới và duyệt trạng thái tức thời</p>
+            </div>
+          </div>
+
+          <!-- Bộ lọc trạng thái đơn -->
+          <div class="flex space-x-2 overflow-x-auto pb-2">
+            <button class="order-filter-tab active-filter px-4 py-2 text-xs font-bold rounded-xl bg-amber-900 text-white transition" data-status="all">Tất cả</button>
+            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Mới nhận">Mới nhận</button>
+            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Đang chế biến">Đang chế biến</button>
+            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Đang giao">Đang giao</button>
+            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Hoàn thành">Hoàn thành</button>
+            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Đã hủy">Đã hủy</button>
+          </div>
+
+          <!-- Lưới hiển thị các thẻ đơn hàng -->
+          <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="col-span-full py-16 text-center text-stone-400">Đang tải đơn hàng...</div>
+          </div>
+        </section>
+
+
+        <!-- ============================================== -->
+        <!-- VIEW: QUẢN LÝ KHÁCH HÀNG (USERS) -->
+        <!-- ============================================== -->
+        <section id="view-users" class="hidden space-y-6 fade-in">
+          <div>
+            <h3 class="text-xl font-bold text-coffee">Danh sách Khách hàng & Tài khoản</h3>
+            <p class="text-xs text-stone-400">Xem thông tin thành viên và quản lý chặn/mở tài khoản</p>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
+                  <tr>
+                    <th class="py-3 px-4">Avatar</th>
+                    <th class="py-3 px-4">Họ và tên</th>
+                    <th class="py-3 px-4">Email</th>
+                    <th class="py-3 px-4">Vai trò</th>
+                    <th class="py-3 px-4">Trạng thái</th>
+                    <th class="py-3 px-4 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr><td colspan="6" class="py-12 text-center text-stone-400">Đang tải tài khoản...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ============================================== -->
+        <!-- VIEW: QUẢN LÝ MÃ GIẢM GIÁ (VOUCHERS) -->
+        <!-- ============================================== -->
+        <section id="view-vouchers" class="hidden space-y-6 fade-in">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold text-coffee">Quản lý Mã giảm giá (Vouchers)</h3>
+              <p class="text-xs text-stone-400">Tạo mã khuyến mãi ưu đãi cho khách hàng ứng dụng</p>
+            </div>
+            <button onclick="window.openAddVoucherModal()"
+                    class="py-2.5 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md shadow-coffee/20 flex items-center space-x-2 transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Tạo mã mới</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
+                  <tr>
+                    <th class="py-3 px-4">Mã CODE</th>
+                    <th class="py-3 px-4">Tên chương trình</th>
+                    <th class="py-3 px-4">Mức giảm</th>
+                    <th class="py-3 px-4">Đơn tối thiểu</th>
+                    <th class="py-3 px-4">Hạn dùng</th>
+                    <th class="py-3 px-4 text-right">Xóa</th>
+                  </tr>
+                </thead>
+                <tbody id="vouchers-table-body">
+                  <tr><td colspan="6" class="py-12 text-center text-stone-400">Đang tải voucher...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ==================================================== -->
+  <!-- MODAL: THÊM / SỬA SẢN PHẨM (KÈM UPLOAD ẢNH FIREBASE STORAGE) -->
+  <!-- ==================================================== -->
+  <div id="product-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200 p-6 max-h-[90vh] overflow-y-auto fade-in">
+      <div class="flex items-center justify-between pb-4 border-b border-stone-100 mb-5">
+        <h3 id="modal-product-title" class="text-lg font-bold text-coffee">Thêm món mới</h3>
+        <button onclick="window.closeProductModal()" class="text-stone-400 hover:text-stone-700">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <form id="product-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Tên món -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Tên món *</label>
+            <input type="text" id="prod-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+          </div>
+
+          <!-- Danh mục -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Danh mục *</label>
+            <select id="prod-category" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+              <option value="Cà phê">Cà phê</option>
+              <option value="Trà">Trà</option>
+              <option value="Bánh">Bánh</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Đơn giá -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giá bán (VNĐ) *</label>
+            <input type="number" id="prod-price" required min="0" step="1000" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Ví dụ: 35000">
+          </div>
+
+          <!-- Upload hình ảnh lên Firebase Storage -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Ảnh sản phẩm (Upload Cloud Storage)</label>
+            <input type="file" id="prod-image-file" accept="image/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-stone-100 file:text-stone-700 file:font-semibold hover:file:bg-stone-200">
+          </div>
+        </div>
+
+        <!-- Preview ảnh -->
+        <div>
+          <img id="prod-image-preview" src="" alt="Preview" class="hidden w-24 h-24 object-cover rounded-xl border border-stone-200 shadow-sm mt-2">
+        </div>
+
+        <!-- Mô tả món -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mô tả sản phẩm</label>
+          <textarea id="prod-desc" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Hương vị, thành phần đặc trưng..."></textarea>
+        </div>
+
+        <!-- Tùy chọn Size -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Các kích cỡ (Size)</label>
+          <div class="flex space-x-6 text-sm">
+            <label class="flex items-center space-x-2"><input type="checkbox" id="size-s" checked class="rounded text-amberLow"> <span>Size S (+0đ)</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="size-m" checked class="rounded text-amberLow"> <span>Size M (+6.000đ)</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="size-l" checked class="rounded text-amberLow"> <span>Size L (+10.000đ)</span></label>
+          </div>
+        </div>
+
+        <!-- Topping -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Danh sách Topping đi kèm (Ngăn cách bởi dấu phẩy)</label>
+          <input type="text" id="prod-toppings" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" 
+                 placeholder="Thạch cà phê (+6.000đ), Trân châu trắng (+6.000đ), Kem Cheese (+10.000đ)">
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-4 border-t border-stone-100">
+          <button type="button" onclick="window.closeProductModal()" class="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl text-sm font-semibold transition">Hủy</button>
+          <button type="submit" id="prod-submit-btn" class="px-6 py-2.5 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md transition">Lưu sản phẩm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==================================================== -->
+  <!-- MODAL: TẠO MÃ GIẢM GIÁ (VOUCHER) -->
+  <!-- ==================================================== -->
+  <div id="voucher-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 p-6 fade-in">
+      <div class="flex items-center justify-between pb-4 border-b border-stone-100 mb-5">
+        <h3 class="text-lg font-bold text-coffee">Tạo mã ưu đãi mới</h3>
+        <button onclick="window.closeVoucherModal()" class="text-stone-400 hover:text-stone-700">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <form id="voucher-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mã CODE *</label>
+            <input type="text" id="v-code" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm uppercase font-mono font-bold focus:border-coffee outline-none" placeholder="GIAM20K">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Loại giảm giá *</label>
+            <select id="v-type" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+              <option value="percentage">Phần trăm (%)</option>
+              <option value="fixed">Số tiền cố định (VNĐ)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Tiêu đề Voucher *</label>
+          <input type="text" id="v-title" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Ưu đãi khách hàng thân thiết">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mô tả chi tiết</label>
+          <input type="text" id="v-desc" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Giảm giá cho đơn hàng từ 50.000đ...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giá trị giảm *</label>
+            <input type="number" id="v-value" required min="1" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="20 hoặc 20000">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Đơn tối thiểu (VNĐ)</label>
+            <input type="number" id="v-min-order" min="0" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="50000">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giảm tối đa (cho %)</label>
+            <input type="number" id="v-max-discount" min="0" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="40000">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Ngày hết hạn</label>
+            <input type="date" id="v-expiry" class="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-4 border-t border-stone-100">
+          <button type="button" onclick="window.closeVoucherModal()" class="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl text-sm font-semibold transition">Hủy</button>
+          <button type="submit" class="px-6 py-2.5 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md transition">Tạo Voucher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Khởi tạo App JS (ES Module) -->
+  <script type="module" src="js/app.js"></script>
+  <script>
+    // Khởi tạo icons Lucide ban đầu
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
+
