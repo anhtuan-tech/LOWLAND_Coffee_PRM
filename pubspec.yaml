@@ -55,6 +55,7 @@ dependencies:
   # OpenStreetMap (OSM - 100% Miễn phí, không cần API Key/Credit Card)
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

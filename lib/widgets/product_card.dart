@@ -3,6 +3,7 @@ import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../core/utils/currency_formatter.dart';
 import '../data/models/product_model.dart';
+import 'smart_image.dart';
 
 /// Thẻ hiển thị sản phẩm trong GridView Thực đơn
 class ProductCard extends StatelessWidget {
@@ -26,12 +27,12 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryDark.withOpacity(0.06),
+              color: AppColors.primaryDark.withValues(alpha: 0.06),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,35 +46,9 @@ class ProductCard extends StatelessWidget {
                     child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
-                      child: Image.network(
-                        product.imageUrl,
+                      child: SmartImage(
+                        imageUrl: product.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.surfaceCream,
-                          child: const Icon(
-                            Icons.coffee_rounded,
-                            size: 40,
-                            color: AppColors.primaryLight,
-                          ),
-                        ),
-                        loadingBuilder: (_, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            color: AppColors.surfaceCream,
-                            child: const Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.accent,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
                       ),
                     ),
                   ),
@@ -85,7 +60,7 @@ class ProductCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.85),
+                        color: AppColors.primary.withValues(alpha: 0.85),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

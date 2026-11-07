@@ -1,28 +1,148 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/sqlite_file_sync.dart';
 import '../../models/cart_item_model.dart';
 import '../../models/product_model.dart';
 import '../../models/order_model.dart';
 
 /// Lớp DatabaseHelper quản lý cơ sở dữ liệu SQLite cục bộ của ứng dụng LOWLAND Coffee
-/// Hỗ trợ cả SQLite trên thiết bị thật/máy ảo và In-Memory Web Storage khi test trên Chrome F12
+/// Hỗ trợ cả SQLite trên thiết bị thật/máy ảo Android/iOS và Persistent Local Storage khi chạy trên Web/Windows Desktop
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 
-  // In-Memory Storage tương thích khi chạy trên Flutter Web (Chrome F12)
+  static const String _keyLocalCart = 'sqlite_persistent_cart_v1';
+  static const String _keyLocalFavorites = 'sqlite_persistent_favorites_v1';
+  static const String _keyLocalOrders = 'sqlite_persistent_orders_v1';
+
+  /// Kiểm tra nền tảng Web hoặc Windows Desktop (nơi sqflite mobile không chạy trực tiếp)
+  bool get _useMemoryFallback =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.linux ||
+      defaultTargetPlatform == TargetPlatform.macOS;
+
+  // Bộ nhớ cục bộ được đồng bộ bền vững xuống ổ cứng / LocalStorage (không bị mất khi tắt app hay F5)
   final List<CartItemModel> _webCartItems = [];
   final List<ProductModel> _webFavorites = [];
   final List<OrderModel> _webOrders = [];
   int _webIdCounter = 1;
+  bool _isWebStorageLoaded = false;
 
   DatabaseHelper._init();
 
+  /// Nạp dữ liệu đã lưu từ ổ cứng / LocalStorage lên khi khởi động lại App
+  Future<void> _ensureLocalPersistenceLoaded() async {
+    if (_isWebStorageLoaded) return;
+    _isWebStorageLoaded = true;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // 1. Khôi phục Giỏ hàng (cart_items)
+      final cartRaw = prefs.getString(_keyLocalCart);
+      if (cartRaw != null && cartRaw.isNotEmpty) {
+        final decoded = jsonDecode(cartRaw) as List<dynamic>;
+        _webCartItems.clear();
+        for (final item in decoded) {
+          final model = CartItemModel.fromMap(Map<String, dynamic>.from(item as Map));
+          _webCartItems.add(model);
+          if (model.id != null && model.id! >= _webIdCounter) {
+            _webIdCounter = model.id! + 1;
+          }
+        }
+      }
+
+      // 2. Khôi phục Yêu thích (favorites)
+      final favRaw = prefs.getString(_keyLocalFavorites);
+      if (favRaw != null && favRaw.isNotEmpty) {
+        final decoded = jsonDecode(favRaw) as List<dynamic>;
+        _webFavorites.clear();
+        for (final item in decoded) {
+          _webFavorites.add(ProductModel.fromMap(Map<String, dynamic>.from(item as Map)));
+        }
+      }
+
+      // 3. Khôi phục Lịch sử đơn hàng (order_history)
+      final ordersRaw = prefs.getString(_keyLocalOrders);
+      if (ordersRaw != null && ordersRaw.isNotEmpty) {
+        final decoded = jsonDecode(ordersRaw) as List<dynamic>;
+        _webOrders.clear();
+        for (final item in decoded) {
+          _webOrders.add(OrderModel.fromMap(Map<String, dynamic>.from(item as Map)));
+        }
+      }
+
+      // Đồng bộ ngay trạng thái hiện tại sang file D:\FA26\prm_project\lowland_coffee.db
+      await syncToPhysicalSqliteDb();
+    } catch (_) {}
+  }
+
+  /// Đồng bộ trực tiếp dữ liệu từ App xuống file vật lý D:\FA26\prm_project\lowland_coffee.db (để xem realtime trên DB Browser for SQLite)
+  Future<void> syncToPhysicalSqliteDb() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final payload = jsonEncode({
+        'cart_items': _webCartItems.map((e) => e.toMap()).toList(),
+        'favorites': _webFavorites.map((e) => {
+          'productId': e.id,
+          'name': e.name,
+          'category': e.category,
+          'imageUrl': e.imageUrl,
+          'price': e.price,
+          'description': e.description,
+          'createdAt': DateTime.now().toIso8601String(),
+        }).toList(),
+        'order_history': _webOrders.map((e) => e.toMap()).toList(),
+        'shared_preferences': {
+          'is_logged_in': (prefs.getBool(AppConstants.keyUserLoggedIn) ?? false).toString(),
+          'user_uid': prefs.getString(AppConstants.keyUserUid) ?? '',
+          'user_email': prefs.getString(AppConstants.keyUserEmail) ?? '',
+          'user_name': prefs.getString(AppConstants.keyUserName) ?? '',
+          'user_phone_number': prefs.getString('user_phone_number') ?? '',
+        },
+      });
+      await syncAppStateToSqliteFile(payload);
+    } catch (_) {}
+  }
+
+  /// Lưu bền vững Giỏ hàng xuống đĩa / LocalStorage & Đồng bộ file .db
+  Future<void> _persistCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = jsonEncode(_webCartItems.map((e) => e.toMap()).toList());
+      await prefs.setString(_keyLocalCart, data);
+      await syncToPhysicalSqliteDb();
+    } catch (_) {}
+  }
+
+  /// Lưu bền vững Yêu thích xuống đĩa / LocalStorage & Đồng bộ file .db
+  Future<void> _persistFavorites() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = jsonEncode(_webFavorites.map((e) => e.toMap()).toList());
+      await prefs.setString(_keyLocalFavorites, data);
+      await syncToPhysicalSqliteDb();
+    } catch (_) {}
+  }
+
+  /// Lưu bền vững Lịch sử đơn hàng xuống đĩa / LocalStorage & Đồng bộ file .db
+  Future<void> _persistOrders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = jsonEncode(_webOrders.map((e) => e.toFullMap()).toList());
+      await prefs.setString(_keyLocalOrders, data);
+      await syncToPhysicalSqliteDb();
+    } catch (_) {}
+  }
+
   Future<Database> get database async {
-    if (kIsWeb) {
-      throw UnsupportedError('sqflite database is not used on Web platform.');
+    if (_useMemoryFallback) {
+      throw UnsupportedError('sqflite database is only used on Android/iOS.');
     }
     if (_database != null) return _database!;
     _database = await _initDB(AppConstants.databaseName);
@@ -98,7 +218,8 @@ class DatabaseHelper {
 
   /// Thêm hoặc gộp sản phẩm vào giỏ hàng
   Future<int> insertOrUpdateCartItem(CartItemModel item) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       final index = _webCartItems.indexWhere(
         (i) =>
             i.productId == item.productId &&
@@ -115,10 +236,12 @@ class DatabaseHelper {
           quantity: newQty,
           totalPrice: current.itemPrice * newQty,
         );
+        await _persistCart();
         return current.id ?? 1;
       } else {
         final newItem = item.copyWith(id: _webIdCounter++);
         _webCartItems.insert(0, newItem);
+        await _persistCart();
         return newItem.id!;
       }
     }
@@ -161,7 +284,8 @@ class DatabaseHelper {
 
   /// Lấy toàn bộ danh sách món trong giỏ hàng
   Future<List<CartItemModel>> getCartItems() async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       return List.from(_webCartItems);
     }
 
@@ -175,7 +299,8 @@ class DatabaseHelper {
 
   /// Cập nhật số lượng của một món trong giỏ
   Future<int> updateCartItemQuantity(int id, int quantity) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       if (quantity <= 0) {
         return await deleteCartItem(id);
       }
@@ -186,6 +311,7 @@ class DatabaseHelper {
           quantity: quantity,
           totalPrice: current.itemPrice * quantity,
         );
+        await _persistCart();
         return 1;
       }
       return 0;
@@ -220,8 +346,10 @@ class DatabaseHelper {
 
   /// Xóa một món khỏi giỏ hàng
   Future<int> deleteCartItem(int id) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       _webCartItems.removeWhere((i) => i.id == id);
+      await _persistCart();
       return 1;
     }
 
@@ -235,8 +363,10 @@ class DatabaseHelper {
 
   /// Xóa toàn bộ giỏ hàng
   Future<int> clearCart() async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       _webCartItems.clear();
+      await _persistCart();
       return 1;
     }
 
@@ -246,7 +376,8 @@ class DatabaseHelper {
 
   /// Lấy số lượng món chưa thanh toán trong giỏ hàng (Startup Cart Check)
   Future<int> getCartItemsCount() async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       return _webCartItems.length;
     }
 
@@ -263,9 +394,11 @@ class DatabaseHelper {
 
   /// Thêm món vào danh sách yêu thích
   Future<int> addFavorite(ProductModel product) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       if (!_webFavorites.any((p) => p.id == product.id)) {
         _webFavorites.insert(0, product);
+        await _persistFavorites();
       }
       return 1;
     }
@@ -288,8 +421,10 @@ class DatabaseHelper {
 
   /// Xóa món khỏi danh sách yêu thích
   Future<int> removeFavorite(String productId) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       _webFavorites.removeWhere((p) => p.id == productId);
+      await _persistFavorites();
       return 1;
     }
 
@@ -303,7 +438,8 @@ class DatabaseHelper {
 
   /// Kiểm tra món đã được yêu thích chưa
   Future<bool> isFavorite(String productId) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       return _webFavorites.any((p) => p.id == productId);
     }
 
@@ -318,7 +454,8 @@ class DatabaseHelper {
 
   /// Lấy toàn bộ danh sách món yêu thích
   Future<List<ProductModel>> getFavorites() async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       return List.from(_webFavorites);
     }
 
@@ -328,13 +465,23 @@ class DatabaseHelper {
       orderBy: 'createdAt DESC',
     );
     return result.map((row) {
+      final category = row['category'] as String? ?? 'Cà phê';
       return ProductModel(
         id: row['productId'] as String,
         name: row['name'] as String,
-        category: row['category'] as String,
+        category: category,
         imageUrl: row['imageUrl'] as String? ?? '',
         price: (row['price'] as num).toDouble(),
         description: row['description'] as String? ?? '',
+        availableSizes: category == 'Bánh' ? const ['M'] : const ['S', 'M', 'L'],
+        availableToppings: category == 'Bánh'
+            ? const []
+            : const [
+                'Thạch cà phê (+6.000đ)',
+                'Trân châu trắng (+6.000đ)',
+                'Kem Cheese (+10.000đ)',
+                'Shot Espresso (+10.000đ)',
+              ],
       );
     }).toList();
   }
@@ -343,10 +490,17 @@ class DatabaseHelper {
   // THAO TÁC VỚI BẢNG ORDER_HISTORY (Lịch sử đơn)
   // ==========================================
 
-  /// Thêm đơn hàng mới vào lịch sử đơn hàng
+  /// Thêm hoặc cập nhật đơn hàng vào lịch sử đơn hàng
   Future<int> insertOrder(OrderModel order) async {
-    if (kIsWeb) {
-      _webOrders.insert(0, order);
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
+      final existingIdx = _webOrders.indexWhere((o) => o.orderId == order.orderId);
+      if (existingIdx != -1) {
+        _webOrders[existingIdx] = order;
+      } else {
+        _webOrders.insert(0, order);
+      }
+      await _persistOrders();
       return 1;
     }
 
@@ -360,7 +514,8 @@ class DatabaseHelper {
 
   /// Lấy danh sách lịch sử đơn hàng của người dùng
   Future<List<OrderModel>> getOrderHistory({String? userId}) async {
-    if (kIsWeb) {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
       if (userId != null && userId.isNotEmpty) {
         return _webOrders.where((o) => o.userId == userId).toList();
       }
@@ -386,9 +541,30 @@ class DatabaseHelper {
     return result.map((json) => OrderModel.fromMap(json)).toList();
   }
 
+  /// Cập nhật trạng thái đơn hàng (ví dụ: Khách hủy đơn khi còn ở trạng thái 'Mới nhận')
+  Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    if (_useMemoryFallback) {
+      await _ensureLocalPersistenceLoaded();
+      final idx = _webOrders.indexWhere((o) => o.orderId == orderId);
+      if (idx != -1) {
+        _webOrders[idx] = _webOrders[idx].copyWith(status: newStatus);
+        await _persistOrders();
+      }
+      return;
+    }
+
+    final db = await database;
+    await db.update(
+      AppConstants.tableOrderHistory,
+      {'status': newStatus},
+      where: 'orderId = ?',
+      whereArgs: [orderId],
+    );
+  }
+
   /// Đóng kết nối CSDL khi cần
   Future<void> close() async {
-    if (kIsWeb) return;
+    if (_useMemoryFallback) return;
     final db = await database;
     await db.close();
   }

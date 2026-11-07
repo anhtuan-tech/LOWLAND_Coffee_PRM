@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../core/constants/app_constants.dart';
 import '../data/models/product_model.dart';
 import '../data/services/remote/firestore_service.dart';
 

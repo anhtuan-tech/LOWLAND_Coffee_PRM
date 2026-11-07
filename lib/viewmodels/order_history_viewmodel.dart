@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../data/models/order_model.dart';
 import '../data/services/local/database_helper.dart';
+import '../data/services/remote/firestore_service.dart';
 
-/// ViewModel quản lý Lịch sử đơn hàng (Order History)
+/// ViewModel quản lý Lịch sử đơn hàng (Order History: Kết hợp SQLite Cục bộ + Đồng bộ Cloud Firestore)
 class OrderHistoryViewModel extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final FirestoreService _firestoreService = FirestoreService.instance;
 
   List<OrderModel> _orders = [];
   bool _isLoading = false;
@@ -21,13 +23,43 @@ class OrderHistoryViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _orders = await _dbHelper.getOrderHistory(userId: userId);
+      // 1. Tải từ bộ nhớ cục bộ (SQLite / LocalStorage) trước để hiển thị tức thì
+      final localOrders = await _dbHelper.getOrderHistory(userId: userId);
+      _orders = localOrders;
+      notifyListeners();
+
+      // 2. Đồng bộ thêm các đơn hàng từ Cloud Firestore (cập nhật trạng thái mới nhất từ Web Admin & khôi phục đơn cũ)
+      final remoteOrders = await _firestoreService.getOrdersFromFirestore(userId: userId);
+      if (remoteOrders.isNotEmpty) {
+        final Map<String, OrderModel> mergedMap = {
+          for (final o in localOrders) o.orderId: o,
+        };
+        for (final remoteOrder in remoteOrders) {
+          mergedMap[remoteOrder.orderId] = remoteOrder;
+          // Lưu ngược lại xuống Local để lần sau mở offline vẫn có
+          await _dbHelper.insertOrder(remoteOrder);
+        }
+        final mergedList = mergedMap.values.toList();
+        mergedList.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+        _orders = mergedList;
+      }
     } catch (_) {
-      _orders = [];
+      // Giữ nguyên danh sách local nếu mất mạng
     }
 
     _isLoading = false;
     notifyListeners();
   }
-}
 
+  /// Hủy đơn hàng khi đơn đang ở trạng thái 'Mới nhận' (chưa pha chế)
+  Future<bool> cancelOrder(String orderId) async {
+    try {
+      await _dbHelper.updateOrderStatus(orderId, 'Đã hủy');
+      await _firestoreService.updateOrderStatusInFirestore(orderId, 'Đã hủy');
+      await loadOrders();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+}

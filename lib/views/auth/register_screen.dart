@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_constants.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../viewmodels/auth_viewmodel.dart';
@@ -94,7 +93,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryDark.withOpacity(0.12),
+                            color: AppColors.primaryDark.withValues(alpha: 0.12),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -124,9 +123,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
+                        color: AppColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.error.withOpacity(0.4)),
+                        border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                       ),
                       child: Text(
                         authVM.errorMessage!,

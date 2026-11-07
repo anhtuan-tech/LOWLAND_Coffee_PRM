@@ -7,6 +7,7 @@ import '../../core/utils/currency_formatter.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/favorite_viewmodel.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/smart_image.dart';
 
 /// Màn hình Danh sách món yêu thích (Lưu trữ cục bộ SQLite)
 class FavoritesScreen extends StatefulWidget {
@@ -135,7 +136,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: favVM.favorites.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final product = favVM.favorites[index];
 
@@ -143,7 +144,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border.withOpacity(0.7)),
+                      border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12),
@@ -152,13 +153,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         child: SizedBox(
                           width: 60,
                           height: 60,
-                          child: Image.network(
-                            product.imageUrl,
+                          child: SmartImage(
+                            imageUrl: product.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: AppColors.surfaceCream,
-                              child: const Icon(Icons.coffee, color: AppColors.primary),
-                            ),
                           ),
                         ),
                       ),

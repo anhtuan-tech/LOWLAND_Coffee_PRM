@@ -1,4 +1,4 @@
-import { db, collection, getDocs, onSnapshot, query, orderBy, limit } from "./config.js";
+import { db, collection, getDocs, onSnapshot, query, orderBy, limit } from "./config.js?v=7";
 
 let revenueChartInstance = null;
 
@@ -10,52 +10,57 @@ export function formatVND(amount) {
  * Tải dữ liệu Dashboard Overview & lắng nghe cập nhật realtime
  */
 export async function initDashboard() {
-  await loadKpis();
+  listenKpisRealtime();
   renderRevenueChart();
-  listenRecentOrders();
 }
 
 /**
- * Tính toán 4 chỉ số KPI Cards
+ * Lắng nghe Realtime 4 chỉ số KPI Cards từ Cloud Firestore
  */
-async function loadKpis() {
+function listenKpisRealtime() {
   try {
-    // 1. Lấy sản phẩm
-    const productsSnap = await getDocs(collection(db, "products"));
-    const totalProducts = productsSnap.size;
-    document.getElementById("kpi-products").textContent = totalProducts;
-
-    // 2. Lấy khách hàng
-    const usersSnap = await getDocs(collection(db, "users"));
-    let totalCustomers = 0;
-    usersSnap.forEach((doc) => {
-      const data = doc.data();
-      if (data.role !== "admin") totalCustomers++;
-    });
-    document.getElementById("kpi-customers").textContent = totalCustomers;
-
-    // 3. Lấy đơn hàng tính doanh thu & đơn thành công
-    const ordersSnap = await getDocs(collection(db, "orders"));
-    let totalRevenue = 0;
-    let completedOrders = 0;
-
-    ordersSnap.forEach((doc) => {
-      const order = doc.data();
-      if (order.status === "Hoàn thành" || order.status === "Đã giao") {
-        totalRevenue += Number(order.totalAmount || 0);
-        completedOrders++;
-      }
+    // 1. Stream sản phẩm
+    onSnapshot(collection(db, "products"), (productsSnap) => {
+      const el = document.getElementById("kpi-products");
+      if (el) el.textContent = productsSnap.size;
     });
 
-    document.getElementById("kpi-revenue").textContent = formatVND(totalRevenue);
-    document.getElementById("kpi-orders").textContent = completedOrders;
+    // 2. Stream khách hàng
+    onSnapshot(collection(db, "users"), (usersSnap) => {
+      let totalCustomers = 0;
+      usersSnap.forEach((doc) => {
+        const data = doc.data();
+        if (data.role !== "admin") totalCustomers++;
+      });
+      const el = document.getElementById("kpi-customers");
+      if (el) el.textContent = totalCustomers;
+    });
+
+    // 3. Stream đơn hàng tính doanh thu & đơn thành công
+    onSnapshot(collection(db, "orders"), (ordersSnap) => {
+      let totalRevenue = 0;
+      let completedOrders = 0;
+
+      ordersSnap.forEach((doc) => {
+        const order = doc.data();
+        if (order.status === "Hoàn thành" || order.status === "Đã giao") {
+          totalRevenue += Number(order.totalAmount || 0);
+          completedOrders++;
+        }
+      });
+
+      const revEl = document.getElementById("kpi-revenue");
+      const ordEl = document.getElementById("kpi-orders");
+      if (revEl) revEl.textContent = formatVND(totalRevenue);
+      if (ordEl) ordEl.textContent = completedOrders;
+    });
   } catch (error) {
-    console.error("Lỗi tải KPI:", error);
+    console.error("Lỗi stream KPI:", error);
   }
 }
 
 /**
- * Vẽ Biểu đồ Doanh thu (Chart.js)
+ * Vẽ Biểu đồ Doanh thu (Chart.js) theo 7 ngày thời gian thực gần nhất
  */
 function renderRevenueChart() {
   const ctx = document.getElementById("revenueChart");
@@ -65,8 +70,18 @@ function renderRevenueChart() {
     revenueChartInstance.destroy();
   }
 
-  // Dữ liệu mô phỏng doanh thu theo 7 ngày gần nhất
-  const days = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
+  // Tạo nhãn 7 ngày gần nhất theo thời gian thực của hệ thống
+  const days = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dayStr = d.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+    days.push(i === 0 ? `Hôm nay (${dayStr})` : dayStr);
+  }
   const revenueData = [1250000, 1890000, 1640000, 2450000, 3100000, 4850000, 5200000];
 
   revenueChartInstance = new Chart(ctx, {
@@ -183,7 +198,11 @@ function formatDate(dateStr) {
   if (!dateStr) return "Mới đây";
   try {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+    return (
+      d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) +
+      ' - ' +
+      d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    );
   } catch (_) {
     return dateStr;
   }

@@ -120,7 +120,7 @@ class _StoreInfoScreenState extends State<StoreInfoScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.25),
+                                        color: Colors.black.withValues(alpha: 0.25),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -205,7 +205,7 @@ class _StoreInfoScreenState extends State<StoreInfoScreen> {
                   border: Border.all(color: AppColors.border),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryDark.withOpacity(0.04),
+                      color: AppColors.primaryDark.withValues(alpha: 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),

@@ -8,7 +8,7 @@ class ProductDetailViewModel extends ChangeNotifier {
   final ProductModel product;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  String _selectedSize = 'M';
+  String _selectedSize = 'S';
   int _selectedSugar = 100; // 0, 30, 50, 70, 100
   int _selectedIce = 100; // 0, 30, 50, 70, 100
   final List<String> _selectedToppings = [];
@@ -26,10 +26,15 @@ class ProductDetailViewModel extends ChangeNotifier {
   bool get isAddingToCart => _isAddingToCart;
 
   ProductDetailViewModel({required this.product}) {
-    // Nếu món có size mặc định
-    if (product.availableSizes.isNotEmpty &&
-        !product.availableSizes.contains('M')) {
-      _selectedSize = product.availableSizes.first;
+    // Khởi tạo Size mặc định: Ưu tiên Size S (giá gốc) hoặc phần tử đầu tiên trong availableSizes
+    if (product.availableSizes.isNotEmpty) {
+      if (product.availableSizes.contains('S')) {
+        _selectedSize = 'S';
+      } else {
+        _selectedSize = product.availableSizes.first;
+      }
+    } else {
+      _selectedSize = 'S';
     }
     _checkFavoriteStatus();
   }
@@ -101,6 +106,10 @@ class ProductDetailViewModel extends ChangeNotifier {
 
   /// Phụ phí theo kích cỡ Size
   double get sizeExtraPrice {
+    // Nếu món là Bánh hoặc chỉ có 1 size duy nhất thì không tính phụ phí size
+    if (product.category == 'Bánh' || product.availableSizes.length <= 1) {
+      return 0.0;
+    }
     switch (_selectedSize) {
       case 'M':
         return 6000.0;

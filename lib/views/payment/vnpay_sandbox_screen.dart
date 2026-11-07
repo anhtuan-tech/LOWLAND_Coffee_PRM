@@ -183,7 +183,7 @@ class _VNPaySandboxScreenState extends State<VNPaySandboxScreen>
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -324,7 +324,7 @@ class _VNPaySandboxScreenState extends State<VNPaySandboxScreen>
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: _selectedBank,
+            initialValue: _selectedBank,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),

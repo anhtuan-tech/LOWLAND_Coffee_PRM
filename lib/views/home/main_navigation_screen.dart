@@ -3,13 +3,14 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/cart_viewmodel.dart';
 import '../../viewmodels/favorite_viewmodel.dart';
+import '../../viewmodels/order_history_viewmodel.dart';
 import '../cart/cart_screen.dart';
-import '../cart/voucher_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../menu/menu_screen.dart';
+import '../orders/order_history_screen.dart';
 import '../profile/profile_screen.dart';
 
-/// Màn hình điều hướng chính với Bottom Navigation Bar
+/// Màn hình điều hướng chính với Bottom Navigation Bar (5 tab: Thực đơn, Yêu thích, Giỏ hàng, Đơn hàng, Tài khoản)
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
 
@@ -26,7 +27,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     MenuScreen(),
     FavoritesScreen(),
     CartScreen(),
-    VoucherScreen(),
+    OrderHistoryScreen(),
     ProfileScreen(),
   ];
 
@@ -52,6 +53,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             context.read<FavoriteViewModel>().loadFavorites();
           } else if (index == 2) {
             context.read<CartViewModel>().loadCart();
+          } else if (index == 3) {
+            context.read<OrderHistoryViewModel>().loadOrders();
           }
           setState(() {
             _currentIndex = index;
@@ -102,8 +105,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             label: 'Giỏ hàng',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.confirmation_number_rounded),
-            label: 'Voucher',
+            icon: Icon(Icons.receipt_long_rounded),
+            label: 'Đơn hàng',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.person_rounded),
@@ -114,4 +117,3 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
-

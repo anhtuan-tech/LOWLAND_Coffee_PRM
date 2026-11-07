@@ -1,16 +1,94 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/auth_guard.dart';
+import '../../core/utils/local_image_picker.dart';
 import '../../data/models/user_model.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/custom_button.dart';
 
-/// Màn hình Tài khoản & Hồ sơ người dùng
+/// Màn hình Tài khoản & Hồ sơ người dùng (Hỗ trợ đổi Ảnh đại diện chọn từ máy tính/điện thoại)
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  /// Mở hộp thoại chọn file ảnh từ máy tính / thiết bị để xem trước (Preview)
+  /// Ảnh sẽ chỉ được tải lên Cloudinary khi người dùng bấm nút "Lưu thay đổi".
+  Future<String?> _pickImageForPreview(BuildContext context) async {
+    try {
+      return await LocalImagePicker.pickLocalImagePreview();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không thể đọc file ảnh: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
+  /// Xây dựng Widget hiển thị Avatar từ ảnh chọn trong máy (Base64), ảnh URL hoặc chữ cái đầu
+  Widget _buildAvatarWidget(
+    UserModel? user, {
+    double radius = 38,
+    String? previewPhotoUrl,
+  }) {
+    final photo = (previewPhotoUrl ?? user?.photoUrl ?? '').trim();
+
+    if (photo.isNotEmpty) {
+      if (photo.startsWith('data:image')) {
+        try {
+          final commaIndex = photo.indexOf(',');
+          final rawBase64 = commaIndex != -1 ? photo.substring(commaIndex + 1) : photo;
+          final bytes = base64Decode(rawBase64);
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: Colors.white,
+            backgroundImage: MemoryImage(bytes),
+          );
+        } catch (_) {}
+      } else if (photo.startsWith('http')) {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.white,
+          backgroundImage: NetworkImage(photo),
+        );
+      }
+    }
+
+    if (user != null && user.displayName.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: AppColors.surfaceCream,
+        child: Text(
+          user.displayName[0].toUpperCase(),
+          style: TextStyle(
+            fontSize: radius * 0.75,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.white,
+      child: ClipOval(
+        child: Image.asset(
+          'assets/images/logo.png',
+          width: radius * 1.8,
+          height: radius * 1.8,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -46,6 +124,7 @@ class ProfileScreen extends StatelessWidget {
   void _showEditProfileDialog(BuildContext context, UserModel user) {
     final nameController = TextEditingController(text: user.displayName);
     final phoneController = TextEditingController(text: user.phoneNumber ?? '');
+    String? selectedPhotoDataUrl = user.photoUrl;
 
     showDialog(
       context: context,
@@ -60,7 +139,7 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.15),
+                      color: AppColors.accent.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.person_pin_rounded, color: AppColors.accent),
@@ -73,6 +152,71 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Khu vực chọn Ảnh đại diện từ máy tính / điện thoại (xem trước, chỉ upload Cloudinary khi bấm Lưu)
+                    GestureDetector(
+                      onTap: isSaving
+                          ? null
+                          : () async {
+                              final pickedDataUrl = await _pickImageForPreview(context);
+                              if (pickedDataUrl != null) {
+                                setDialogState(() {
+                                  selectedPhotoDataUrl = pickedDataUrl;
+                                });
+                              }
+                            },
+                      child: Column(
+                        children: [
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.accent, width: 2),
+                                ),
+                                child: _buildAvatarWidget(
+                                  user,
+                                  radius: 44,
+                                  previewPhotoUrl: selectedPhotoDataUrl,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: isSaving
+                                ? null
+                                : () async {
+                                    final pickedDataUrl = await _pickImageForPreview(context);
+                                    if (pickedDataUrl != null) {
+                                      setDialogState(() {
+                                        selectedPhotoDataUrl = pickedDataUrl;
+                                      });
+                                    }
+                                  },
+                            icon: const Icon(Icons.upload_file_rounded, size: 18),
+                            label: const Text(
+                              'Chọn ảnh từ thiết bị',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(
@@ -105,30 +249,66 @@ class ProfileScreen extends StatelessWidget {
                       ? null
                       : () async {
                           final newName = nameController.text.trim();
-                          if (newName.isEmpty) {
+                          final newPhone = phoneController.text.trim();
+                          if (newName.length < 2) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Vui lòng nhập họ và tên!')),
+                              const SnackBar(
+                                content: Text('Họ và tên phải có ít nhất 2 ký tự!'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                            return;
+                          }
+                          if (newPhone.isNotEmpty &&
+                              !RegExp(r'^(0[3|5|7|8|9])+([0-9]{8})$').hasMatch(newPhone)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Số điện thoại không hợp lệ (Gồm 10 số, bắt đầu bằng 03, 05, 07, 08, 09)!'),
+                                backgroundColor: AppColors.error,
+                              ),
                             );
                             return;
                           }
                           setDialogState(() => isSaving = true);
                           final success = await context.read<AuthViewModel>().updateProfile(
                                 displayName: newName,
-                                phoneNumber: phoneController.text.trim(),
+                                phoneNumber: newPhone,
+                                photoUrl: selectedPhotoDataUrl,
                               );
                           if (ctx.mounted) Navigator.pop(ctx);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(success ? 'Cập nhật hồ sơ thành công! 🎉' : 'Lỗi cập nhật hồ sơ.'),
+                                content: Text(
+                                  success
+                                      ? 'Cập nhật hồ sơ & ảnh đại diện thành công! 🎉'
+                                      : 'Lỗi cập nhật hồ sơ.',
+                                ),
                                 backgroundColor: success ? AppColors.success : AppColors.error,
                               ),
                             );
                           }
                         },
                   child: isSaving
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Lưu thay đổi', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ? const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 15,
+                              height: 15,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Đang lưu...',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        )
+                      : const Text(
+                          'Lưu thay đổi',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ],
             );
@@ -161,7 +341,7 @@ class ProfileScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryDark.withOpacity(0.04),
+                    color: AppColors.primaryDark.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -169,26 +349,36 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.white,
-                    child: (user != null && user.displayName.isNotEmpty)
-                        ? Text(
-                            user.displayName[0].toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                  // Avatar bấm vào sẽ mở hộp thoại Cập nhật hồ sơ để chọn ảnh & bấm Lưu lên Cloudinary
+                  GestureDetector(
+                    onTap: user != null ? () => _showEditProfileDialog(context, user) : null,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.accent.withValues(alpha: 0.5), width: 2),
+                          ),
+                          child: _buildAvatarWidget(user, radius: 36),
+                        ),
+                        if (user != null)
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
                               color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
                             ),
-                          )
-                        : ClipOval(
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              width: 65,
-                              height: 65,
-                              fit: BoxFit.contain,
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 13,
+                              color: Colors.white,
                             ),
                           ),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -206,7 +396,7 @@ class ProfileScreen extends StatelessWidget {
                             if (user != null)
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.accent),
-                                tooltip: 'Chỉnh sửa hồ sơ',
+                                tooltip: 'Chỉnh sửa hồ sơ & ảnh',
                                 onPressed: () => _showEditProfileDialog(context, user),
                               ),
                           ],
@@ -223,24 +413,6 @@ class ProfileScreen extends StatelessWidget {
                             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                           ),
                         ],
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: (user != null)
-                                ? AppColors.accent.withOpacity(0.15)
-                                : Colors.grey.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            (user != null) ? 'Thành viên Vàng ☕' : 'Khách vãng lai 👤',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: (user != null) ? AppColors.accentDark : Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -253,8 +425,8 @@ class ProfileScreen extends StatelessWidget {
             if (user != null)
               _buildMenuItem(
                 icon: Icons.manage_accounts_rounded,
-                title: 'Cập nhật hồ sơ cá nhân',
-                subtitle: 'Đổi tên hiển thị, số điện thoại liên hệ',
+                title: 'Cập nhật hồ sơ & Ảnh đại diện',
+                subtitle: 'Chọn ảnh từ thiết bị, đổi tên hiển thị và SĐT',
                 onTap: () => _showEditProfileDialog(context, user),
               ),
             _buildMenuItem(
@@ -326,7 +498,7 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border.withOpacity(0.6)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
       ),
       child: ListTile(
         leading: Container(
@@ -345,4 +517,3 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-

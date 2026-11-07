@@ -111,24 +111,43 @@ class FirebaseAuthService {
     await _auth.signOut();
   }
 
-  /// Cập nhật thông tin hồ sơ người dùng
+  /// Cập nhật thông tin hồ sơ người dùng (Họ tên, Số điện thoại, Ảnh đại diện chọn từ máy)
   Future<UserModel> updateProfile({
     required String uid,
     required String displayName,
     String? phoneNumber,
+    String? photoUrl,
   }) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
         await user.updateDisplayName(displayName.trim());
+        if (photoUrl != null && photoUrl.trim().startsWith('http')) {
+          try {
+            await user.updatePhotoURL(photoUrl.trim());
+          } catch (_) {}
+        }
       }
 
-      await _firestore.collection(AppConstants.collectionUsers).doc(uid).update({
+      final Map<String, dynamic> updateData = {
+        'uid': uid,
         'displayName': displayName.trim(),
-        if (phoneNumber != null && phoneNumber.trim().isNotEmpty)
-          'phoneNumber': phoneNumber.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      if (user?.email != null) {
+        updateData['email'] = user!.email;
+      }
+      if (phoneNumber != null) {
+        updateData['phoneNumber'] = phoneNumber.trim();
+      }
+      if (photoUrl != null && photoUrl.trim().isNotEmpty) {
+        updateData['photoUrl'] = photoUrl.trim();
+      }
+
+      await _firestore
+          .collection(AppConstants.collectionUsers)
+          .doc(uid)
+          .set(updateData, SetOptions(merge: true));
 
       final doc = await _firestore.collection(AppConstants.collectionUsers).doc(uid).get();
       if (doc.exists && doc.data() != null) {
@@ -139,6 +158,7 @@ class FirebaseAuthService {
           email: user?.email ?? '',
           displayName: displayName.trim(),
           phoneNumber: phoneNumber,
+          photoUrl: photoUrl,
         );
       }
     } catch (e) {

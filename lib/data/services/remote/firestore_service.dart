@@ -186,6 +186,9 @@ class FirestoreService {
         maxDiscount: 40000,
         minOrderValue: 40000,
         expiryDate: now.add(const Duration(days: 30)),
+        onlyFirstOrder: true,
+        oncePerUser: true,
+        applicableCategory: 'all',
       ),
       VoucherModel(
         code: 'GIAM20K',
@@ -195,6 +198,9 @@ class FirestoreService {
         discountValue: 20000,
         minOrderValue: 70000,
         expiryDate: now.add(const Duration(days: 15)),
+        onlyFirstOrder: false,
+        oncePerUser: false,
+        applicableCategory: 'all',
       ),
       VoucherModel(
         code: 'TRAXANH15',
@@ -205,6 +211,9 @@ class FirestoreService {
         maxDiscount: 30000,
         minOrderValue: 50000,
         expiryDate: now.add(const Duration(days: 7)),
+        onlyFirstOrder: false,
+        oncePerUser: false,
+        applicableCategory: 'Trà & Bánh',
       ),
     ];
   }
@@ -228,7 +237,7 @@ class FirestoreService {
   /// Đẩy đơn hàng mới lên Cloud Firestore để Web Admin nhận Realtime
   Future<void> createOrder(OrderModel order, {String? customerName}) async {
     try {
-      final orderData = order.toMap();
+      final orderData = order.toFullMap();
       orderData['userName'] = customerName ?? (order.userId.isEmpty ? 'Khách vãng lai' : order.userId);
       orderData['createdAt'] = FieldValue.serverTimestamp();
 
@@ -238,6 +247,56 @@ class FirestoreService {
           .set(orderData);
     } catch (_) {
       // Dữ liệu vẫn được bảo toàn trong SQLite
+    }
+  }
+
+  /// Cập nhật trạng thái đơn hàng trên Cloud Firestore (ví dụ: Khách hủy đơn)
+  Future<void> updateOrderStatusInFirestore(String orderId, String status) async {
+    try {
+      await _firestore.collection('orders').doc(orderId).update({'status': status});
+    } catch (_) {}
+  }
+
+  /// Đồng bộ danh sách Voucher từ Cloud Firestore (kết hợp với bộ Voucher mặc định theo thời gian thực)
+  Future<List<VoucherModel>> getVouchersFromFirestore() async {
+    final defaultList = getLocalVouchers();
+    final defaultCodes = {for (final v in defaultList) v.code.toUpperCase(): v};
+    try {
+      final snapshot = await _firestore.collection(AppConstants.collectionVouchers).get();
+      if (snapshot.docs.isEmpty) return defaultList;
+
+      final Map<String, VoucherModel> merged = {...defaultCodes};
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final v = VoucherModel.fromMap(data, doc.id);
+        final upperCode = v.code.toUpperCase();
+        if (upperCode.isNotEmpty) {
+          merged[upperCode] = v;
+        }
+      }
+      return merged.values.toList();
+    } catch (_) {
+      return defaultList;
+    }
+  }
+
+  /// Lấy danh sách đơn hàng từ Cloud Firestore để đồng bộ với Lịch sử đơn hàng cục bộ
+  Future<List<OrderModel>> getOrdersFromFirestore({String? userId}) async {
+    try {
+      final snapshot = await _firestore.collection('orders').get();
+      final orders = snapshot.docs
+          .map((doc) => OrderModel.fromMap(doc.data()))
+          .where((o) => o.orderId.isNotEmpty)
+          .toList();
+
+      if (userId != null && userId.isNotEmpty) {
+        return orders.where((o) => o.userId == userId).toList();
+      }
+
+      orders.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+      return orders;
+    } catch (_) {
+      return [];
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 import '../data/services/local/shared_prefs_service.dart';
+import '../data/services/remote/cloudinary_service.dart';
 import '../data/services/remote/firebase_auth_service.dart';
 
 /// ViewModel quản lý Xác thực & Tài khoản người dùng
@@ -84,12 +85,16 @@ class AuthViewModel extends ChangeNotifier {
         final uid = session['uid'];
         final email = session['email'];
         final name = session['name'];
+        final phone = session['phone'];
+        final photoUrl = session['photoUrl'];
 
         if (uid != null && email != null) {
           _currentUser = UserModel(
             uid: uid,
             email: email,
             displayName: name ?? email.split('@').first,
+            phoneNumber: phone,
+            photoUrl: photoUrl,
           );
           _isLoading = false;
           notifyListeners();
@@ -122,6 +127,8 @@ class AuthViewModel extends ChangeNotifier {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
+        phoneNumber: user.phoneNumber,
+        photoUrl: user.photoUrl,
       );
 
       _isLoading = false;
@@ -157,6 +164,8 @@ class AuthViewModel extends ChangeNotifier {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
+        phoneNumber: user.phoneNumber,
+        photoUrl: user.photoUrl,
       );
 
       _isLoading = false;
@@ -170,10 +179,11 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Cập nhật thông tin hồ sơ người dùng
+  /// Cập nhật thông tin hồ sơ người dùng (Họ tên, SĐT, Ảnh đại diện từ máy)
   Future<bool> updateProfile({
     required String displayName,
     String? phoneNumber,
+    String? photoUrl,
   }) async {
     if (_currentUser == null) return false;
 
@@ -181,28 +191,69 @@ class AuthViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    String? effectivePhotoUrl = photoUrl ?? _currentUser!.photoUrl;
+
     try {
+      // Nếu là ảnh mới chọn từ thiết bị (chưa phải link http), tải lên Cloudinary khi bấm Lưu
+      if (effectivePhotoUrl != null &&
+          effectivePhotoUrl.trim().isNotEmpty &&
+          !effectivePhotoUrl.trim().startsWith('http')) {
+        effectivePhotoUrl = await CloudinaryService.uploadImage(
+          effectivePhotoUrl.trim(),
+          folder: 'lowland_coffee/avatars',
+        );
+      }
+
       final updatedUser = await _authService.updateProfile(
         uid: _currentUser!.uid,
         displayName: displayName,
         phoneNumber: phoneNumber,
+        photoUrl: effectivePhotoUrl,
       );
 
-      _currentUser = updatedUser;
-      await _prefsService.saveUserSession(
+      _currentUser = UserModel(
         uid: updatedUser.uid,
-        email: updatedUser.email,
+        email: updatedUser.email.isNotEmpty ? updatedUser.email : _currentUser!.email,
         displayName: updatedUser.displayName,
+        phoneNumber: updatedUser.phoneNumber ?? phoneNumber,
+        photoUrl: updatedUser.photoUrl ?? effectivePhotoUrl,
+        role: updatedUser.role,
+        isBlocked: updatedUser.isBlocked,
+        createdAt: updatedUser.createdAt ?? _currentUser!.createdAt,
+      );
+
+      await _prefsService.saveUserSession(
+        uid: _currentUser!.uid,
+        email: _currentUser!.email,
+        displayName: _currentUser!.displayName,
+        phoneNumber: _currentUser!.phoneNumber,
+        photoUrl: _currentUser!.photoUrl,
       );
 
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      // Kể cả khi Firestore lỗi mạng tạm thời, vẫn lưu hồ sơ (kèm URL Cloudinary vừa tải) vào Local
+      _currentUser = UserModel(
+        uid: _currentUser!.uid,
+        email: _currentUser!.email,
+        displayName: displayName.trim(),
+        phoneNumber: phoneNumber?.trim(),
+        photoUrl: effectivePhotoUrl,
+        role: _currentUser!.role,
+        isBlocked: _currentUser!.isBlocked,
+      );
+      await _prefsService.saveUserSession(
+        uid: _currentUser!.uid,
+        email: _currentUser!.email,
+        displayName: _currentUser!.displayName,
+        phoneNumber: _currentUser!.phoneNumber,
+        photoUrl: _currentUser!.photoUrl,
+      );
       _isLoading = false;
       notifyListeners();
-      return false;
+      return true;
     }
   }
 

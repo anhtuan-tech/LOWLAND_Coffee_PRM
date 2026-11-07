@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LOWLAND Coffee • Quản Trị Hệ Thống (Web Admin)</title>
   <link rel="icon" type="image/png" href="favicon.png">
-  
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -34,69 +35,81 @@
     }
   </script>
 
-  <!-- Lucide Icons & Chart.js -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Flaticon UIcons (Official Flaticon CSS Webfont Library) & Chart.js -->
+  <link rel="stylesheet"
+    href="https://cdn-uicons.flaticon.com/2.6.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="bg-cream text-stone-800 font-sans antialiased">
 
   <!-- ==================================================== -->
   <!-- 1. MÀN HÌNH ĐĂNG NHẬP ADMIN (AUTH SCREEN) -->
   <!-- ==================================================== -->
-  <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-cream to-cream-dark">
+  <div id="auth-screen"
+    class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-cream to-cream-dark">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-xl border border-stone-200/80 p-8 fade-in">
-      
+
       <!-- Brand Logo & Header -->
       <div class="text-center mb-8">
-        <img src="img/logo.png" alt="LOWLAND Coffee" class="w-24 h-24 mx-auto object-contain mb-4 rounded-full shadow-lg bg-white p-1 border-2 border-amberLow/30">
+        <img src="img/logo.png" alt="LOWLAND Coffee"
+          class="w-24 h-24 mx-auto object-contain mb-4 rounded-full shadow-lg bg-white p-1 border-2 border-amberLow/30">
         <h1 class="text-2xl font-black text-coffee tracking-tight">LOWLAND Coffee</h1>
         <p class="text-xs font-semibold text-amberLow uppercase tracking-widest mt-1">Hệ Thống Quản Trị Trung Tâm</p>
         <p class="text-xs text-stone-500 mt-2">Cổng Quản lý Dành riêng cho Ban Điều Hành & Quản Lý Chi Nhánh</p>
       </div>
 
       <!-- Thông báo lỗi nếu có -->
-      <div id="login-error-msg" class="hidden mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium"></div>
+      <div id="login-error-msg"
+        class="hidden mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium"></div>
 
-      <!-- Form Đăng nhập -->
-      <form id="admin-login-form" class="space-y-4">
+      <!-- Khung Đăng nhập (Dùng div + button type="button" để triệt tiêu 100% lỗi reload /? của thẻ form) -->
+      <div id="admin-login-form" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">Email Quản trị</label>
           <div class="relative">
-            <i data-lucide="mail" class="w-5 h-5 text-stone-400 absolute left-3.5 top-3"></i>
+            <i class="fi fi-rr-envelope text-stone-400 absolute left-3.5 top-3 text-base"></i>
             <input type="email" id="admin-email" required
-                   class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-stone-300 focus:border-coffee focus:ring-2 focus:ring-coffee/20 outline-none text-sm transition"
-                   placeholder="admin@lowlandcoffee.com" value="admin@lowlandcoffee.com">
+              class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-stone-300 focus:border-coffee focus:ring-2 focus:ring-coffee/20 outline-none text-sm transition"
+              placeholder="admin@lowlandcoffee.com" value="admin@lowlandcoffee.com"
+              onkeydown="if(event.key==='Enter'){event.preventDefault(); window.triggerAdminLogin();}">
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">Mật khẩu</label>
           <div class="relative">
-            <i data-lucide="lock" class="w-5 h-5 text-stone-400 absolute left-3.5 top-3"></i>
+            <i class="fi fi-rr-lock text-stone-400 absolute left-3.5 top-3 text-base"></i>
             <input type="password" id="admin-password" required
-                   class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-stone-300 focus:border-coffee focus:ring-2 focus:ring-coffee/20 outline-none text-sm transition"
-                   placeholder="Nhập mật khẩu admin">
+              class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-stone-300 focus:border-coffee focus:ring-2 focus:ring-coffee/20 outline-none text-sm transition"
+              placeholder="Nhập mật khẩu admin (VD: 123456)" value="123456"
+              onkeydown="if(event.key==='Enter'){event.preventDefault(); window.triggerAdminLogin();}">
           </div>
         </div>
 
-        <button type="submit" id="login-submit-btn"
-                class="w-full py-3 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl font-bold text-sm shadow-md shadow-coffee/20 transition duration-150 flex items-center justify-center mt-6">
-          Đăng nhập hệ thống
+        <button type="button" id="login-submit-btn" onclick="window.triggerAdminLogin()"
+          class="w-full py-3 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl font-bold text-sm shadow-md shadow-coffee/20 transition duration-150 flex items-center justify-center mt-6 cursor-pointer">
+          <i class="fi fi-rr-sign-in-alt mr-2 text-sm"></i>
+          <span>Đăng nhập hệ thống</span>
         </button>
 
         <div class="text-center pt-2">
-          <button type="button" onclick="window.showForgotAdminGuide()" class="text-xs text-amber-800 hover:text-amber-950 hover:underline">
+          <button type="button" onclick="window.showForgotAdminGuide()"
+            class="text-xs text-amber-800 hover:text-amber-950 hover:underline">
             Quên mật khẩu Quản trị viên? Bấm xem hướng dẫn
           </button>
         </div>
-      </form>
+      </div>
 
       <div class="mt-8 pt-6 border-t border-stone-100 text-center">
         <span class="inline-flex items-center text-xs text-stone-400 font-medium">
           <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-          Hệ thống Vận hành Trực tuyến • LOWLAND Coffee 2026
+          Hệ thống Trực tuyến • <span id="login-realtime-clock" class="ml-1 font-semibold text-stone-500">Đang đồng bộ
+            giờ...</span>
         </span>
       </div>
     </div>
@@ -107,43 +120,54 @@
   <!-- 2. GIAO DIỆN CHÍNH CỦA WEB ADMIN (ADMIN SCREEN) -->
   <!-- ==================================================== -->
   <div id="admin-screen" class="hidden min-h-screen flex">
-    
+
     <!-- SIDEBAR BÊN TRÁI -->
     <aside class="w-64 bg-white border-r border-stone-200/80 flex flex-col fixed inset-y-0 z-30">
-      
+
       <!-- Brand Logo -->
       <div class="h-20 flex items-center px-6 border-b border-stone-100 space-x-3">
-        <img src="img/logo.png" alt="LOWLAND" class="w-12 h-12 rounded-full object-contain shadow-md border border-stone-200 bg-white p-0.5">
+        <img src="img/logo.png" alt="LOWLAND"
+          class="w-12 h-12 rounded-full object-contain shadow-md border border-stone-200 bg-white p-0.5">
         <div>
           <h2 class="font-black text-lg text-coffee tracking-tight">LOWLAND</h2>
           <span class="text-[10px] font-bold text-amberLow uppercase tracking-widest block -mt-1">Coffee Admin</span>
         </div>
       </div>
 
-      <!-- Menu Navigation -->
+      <!-- Menu Navigation (Flaticon UIcons) -->
       <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-bold text-amber-950 bg-amber-900/10 rounded-xl transition" data-tab="dashboard">
-          <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 text-amberLow"></i>
+        <button
+          class="nav-item w-full flex items-center px-4 py-3 text-sm font-bold text-amber-950 bg-amber-900/10 rounded-xl transition"
+          data-tab="dashboard">
+          <i class="fi fi-rr-apps mr-3 text-lg text-amberLow"></i>
           Tổng quan KPI
         </button>
 
-        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="products">
-          <i data-lucide="cup-soda" class="w-5 h-5 mr-3 text-stone-400"></i>
+        <button
+          class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition"
+          data-tab="products">
+          <i class="fi fi-rr-mug-hot-alt mr-3 text-lg text-stone-400"></i>
           Thực đơn & Sản phẩm
         </button>
 
-        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="orders">
-          <i data-lucide="shopping-cart" class="w-5 h-5 mr-3 text-stone-400"></i>
+        <button
+          class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition"
+          data-tab="orders">
+          <i class="fi fi-rr-shopping-bag mr-3 text-lg text-stone-400"></i>
           Đơn hàng Realtime
         </button>
 
-        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="users">
-          <i data-lucide="users" class="w-5 h-5 mr-3 text-stone-400"></i>
+        <button
+          class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition"
+          data-tab="users">
+          <i class="fi fi-rr-users-alt mr-3 text-lg text-stone-400"></i>
           Quản lý Khách hàng
         </button>
 
-        <button class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition" data-tab="vouchers">
-          <i data-lucide="ticket-percent" class="w-5 h-5 mr-3 text-stone-400"></i>
+        <button
+          class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 rounded-xl transition"
+          data-tab="vouchers">
+          <i class="fi fi-rr-ticket mr-3 text-lg text-stone-400"></i>
           Mã giảm giá
         </button>
       </nav>
@@ -152,33 +176,42 @@
       <div class="p-4 border-t border-stone-100 bg-stone-50/50">
         <div class="flex items-center space-x-2 text-xs text-stone-500">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span>Firestore & Storage Online</span>
+          <span>Firestore & Cloudinary Online</span>
         </div>
       </div>
     </aside>
 
     <!-- KHU VỰC NỘI DUNG CHÍNH (MAIN CONTENT) -->
     <main class="flex-1 ml-64 min-h-screen flex flex-col">
-      
+
       <!-- TOP NAVBAR -->
-      <header class="h-20 bg-white/80 backdrop-blur-md border-b border-stone-200/80 sticky top-0 z-20 px-8 flex items-center justify-between">
+      <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-stone-200/80 sticky top-0 z-20 px-8 flex items-center justify-between">
         <div>
           <h2 class="text-xl font-bold text-coffee" id="topbar-title">Bảng điều khiển Quản trị</h2>
           <p class="text-xs text-stone-400">Đồng bộ trực tiếp với ứng dụng LOWLAND Mobile</p>
         </div>
 
-        <!-- Admin Profile Pill -->
+        <!-- Admin Profile Pill & Realtime Clock -->
         <div class="flex items-center space-x-4">
+          <div
+            class="hidden md:flex items-center space-x-2 bg-amber-50/80 border border-amber-200/70 rounded-xl py-1.5 px-3 text-xs font-bold text-coffee">
+            <i class="fi fi-rr-clock-three text-amberLow text-sm"></i>
+            <span id="realtime-clock">--:--:-- • --/--/----</span>
+          </div>
           <div class="flex items-center space-x-3 bg-stone-50 border border-stone-200/80 rounded-2xl py-1.5 px-3">
-            <div id="header-admin-avatar" class="w-8 h-8 rounded-full bg-coffee text-amberLow font-bold flex items-center justify-center text-xs">A</div>
+            <div id="header-admin-avatar"
+              class="w-8 h-8 rounded-full bg-coffee text-amberLow font-bold flex items-center justify-center text-xs">A
+            </div>
             <div class="text-left pr-2">
               <span id="header-admin-name" class="block text-xs font-bold text-stone-800">Quản Trị Viên</span>
               <span id="header-admin-email" class="block text-[10px] text-stone-400">admin@lowlandcoffee.com</span>
             </div>
           </div>
 
-          <button id="btn-logout" class="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Đăng xuất">
-            <i data-lucide="log-out" class="w-5 h-5"></i>
+          <button id="btn-logout"
+            class="p-2.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Đăng xuất">
+            <i class="fi fi-rr-sign-out-alt text-lg"></i>
           </button>
         </div>
       </header>
@@ -190,14 +223,14 @@
         <!-- VIEW: DASHBOARD OVERVIEW -->
         <!-- ============================================== -->
         <section id="view-dashboard" class="space-y-8 fade-in">
-          
-          <!-- 4 KPI Cards -->
+
+          <!-- 4 KPI Cards (Flaticon Solid Rounded Icons) -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
+
             <!-- KPI 1: Doanh thu -->
             <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
-              <div class="p-4 bg-amberLow/10 text-amberLow rounded-2xl">
-                <i data-lucide="coins" class="w-7 h-7"></i>
+              <div class="w-14 h-14 bg-amberLow/10 text-amberLow rounded-2xl flex items-center justify-center">
+                <i class="fi fi-sr-coins text-2xl"></i>
               </div>
               <div>
                 <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Tổng doanh thu</span>
@@ -207,8 +240,8 @@
 
             <!-- KPI 2: Đơn thành công -->
             <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
-              <div class="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
-                <i data-lucide="check-circle" class="w-7 h-7"></i>
+              <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                <i class="fi fi-sr-badge-check text-2xl"></i>
               </div>
               <div>
                 <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Đơn hoàn thành</span>
@@ -218,8 +251,8 @@
 
             <!-- KPI 3: Số lượng món -->
             <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
-              <div class="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                <i data-lucide="coffee" class="w-7 h-7"></i>
+              <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                <i class="fi fi-sr-mug-hot-alt text-2xl"></i>
               </div>
               <div>
                 <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Thực đơn</span>
@@ -229,8 +262,8 @@
 
             <!-- KPI 4: Khách hàng -->
             <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex items-center space-x-4">
-              <div class="p-4 bg-purple-50 text-purple-600 rounded-2xl">
-                <i data-lucide="users" class="w-7 h-7"></i>
+              <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
+                <i class="fi fi-sr-users-alt text-2xl"></i>
               </div>
               <div>
                 <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Khách hàng</span>
@@ -240,45 +273,18 @@
 
           </div>
 
-          <!-- Biểu đồ Doanh thu & Bảng đơn gần nhất -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Biểu đồ Chart.js -->
-            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm">
-              <div class="flex items-center justify-between mb-6">
-                <div>
-                  <h3 class="font-bold text-lg text-coffee">Thống kê Doanh thu tuần</h3>
-                  <p class="text-xs text-stone-400">Doanh thu bán cà phê & thức uống theo ngày</p>
-                </div>
-                <span class="text-xs font-bold px-3 py-1 bg-amber-50 text-amberLow rounded-lg border border-amber-200">7 ngày gần nhất</span>
+          <!-- Biểu đồ Doanh thu toàn chiều rộng -->
+          <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="font-bold text-lg text-coffee">Thống kê Doanh thu tuần</h3>
+                <p class="text-xs text-stone-400">Doanh thu bán cà phê & thức uống theo ngày</p>
               </div>
-              <div class="h-72">
-                <canvas id="revenueChart"></canvas>
-              </div>
+              <span class="text-xs font-bold px-3 py-1 bg-amber-50 text-amberLow rounded-lg border border-amber-200">7
+                ngày gần nhất</span>
             </div>
-
-            <!-- Bảng đơn mới nhất -->
-            <div class="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-lg text-coffee">Đơn hàng mới</h3>
-                <span class="text-xs text-emerald-600 font-semibold flex items-center">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span> Realtime
-                </span>
-              </div>
-              <div class="overflow-x-auto flex-1">
-                <table class="w-full text-left text-xs">
-                  <thead>
-                    <tr class="text-stone-400 border-b border-stone-100">
-                      <th class="py-2 px-2">Mã</th>
-                      <th class="py-2 px-2">Khách</th>
-                      <th class="py-2 px-2">Tổng</th>
-                      <th class="py-2 px-2">Trạng thái</th>
-                    </tr>
-                  </thead>
-                  <tbody id="recent-orders-body">
-                    <tr><td colspan="4" class="py-8 text-center text-stone-400">Đang tải...</td></tr>
-                  </tbody>
-                </table>
-              </div>
+            <div class="h-80">
+              <canvas id="revenueChart"></canvas>
             </div>
           </div>
         </section>
@@ -288,22 +294,16 @@
         <!-- VIEW: QUẢN LÝ THỰC ĐƠN & SẢN PHẨM (CRUD) -->
         <!-- ============================================== -->
         <section id="view-products" class="hidden space-y-6 fade-in">
-          
+
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-xl font-bold text-coffee">Danh sách Món ăn & Đồ uống</h3>
               <p class="text-xs text-stone-400">Quản lý giá, hình ảnh, phân loại và các tùy chọn món</p>
             </div>
             <div class="flex items-center space-x-3">
-              <button onclick="window.seedDefaultProducts()"
-                      class="py-2.5 px-4 bg-amberLow hover:bg-amber-600 text-white rounded-xl text-sm font-bold shadow-md shadow-amberLow/20 flex items-center space-x-2 transition"
-                      title="Nạp nhanh 8 món mẫu tự động">
-                <i data-lucide="sparkles" class="w-4 h-4"></i>
-                <span>Nạp 8 món mẫu</span>
-              </button>
               <button onclick="window.openAddProductModal()"
-                      class="py-2.5 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md shadow-coffee/20 flex items-center space-x-2 transition">
-                <i data-lucide="plus" class="w-4 h-4"></i>
+                class="py-2.5 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md shadow-coffee/20 flex items-center space-x-2 transition">
+                <i class="fi fi-br-plus text-xs"></i>
                 <span>Thêm món mới</span>
               </button>
             </div>
@@ -313,7 +313,8 @@
           <div class="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <thead class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
+                <thead
+                  class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
                   <tr>
                     <th class="py-3 px-4">Hình ảnh</th>
                     <th class="py-3 px-4">Tên sản phẩm</th>
@@ -324,7 +325,9 @@
                   </tr>
                 </thead>
                 <tbody id="products-table-body">
-                  <tr><td colspan="6" class="py-12 text-center text-stone-400">Đang tải danh sách món từ Firestore...</td></tr>
+                  <tr>
+                    <td colspan="6" class="py-12 text-center text-stone-400">Đang tải danh sách món từ Firestore...</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -336,26 +339,116 @@
         <!-- VIEW: QUẢN LÝ ĐƠN HÀNG REALTIME -->
         <!-- ============================================== -->
         <section id="view-orders" class="hidden space-y-6 fade-in">
-          
-          <div class="flex items-center justify-between">
+
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h3 class="text-xl font-bold text-coffee">Quản lý Đơn hàng Realtime</h3>
-              <p class="text-xs text-stone-400">Tự động nhận đơn hàng mới và duyệt trạng thái tức thời</p>
+              <h3 class="text-xl font-bold text-coffee">Quản lý Đơn hàng Realtime (POS Board)</h3>
+              <p class="text-xs text-stone-400">Tự động nhận đơn hàng mới, duyệt tiến trình 1-chạm và đồng bộ tức thời
+                với App</p>
+            </div>
+
+            <!-- Ô tìm kiếm đơn hàng nhanh -->
+            <div class="relative w-full md:w-80">
+              <i class="fi fi-rr-search text-stone-400 absolute left-3.5 top-2.5 text-sm"></i>
+              <input type="text" id="order-search-input" placeholder="Tìm mã đơn (#ORD), tên khách, SĐT..."
+                class="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 bg-white text-xs focus:border-coffee focus:ring-2 focus:ring-coffee/15 outline-none shadow-sm transition">
             </div>
           </div>
 
-          <!-- Bộ lọc trạng thái đơn -->
-          <div class="flex space-x-2 overflow-x-auto pb-2">
-            <button class="order-filter-tab active-filter px-4 py-2 text-xs font-bold rounded-xl bg-amber-900 text-white transition" data-status="all">Tất cả</button>
-            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Mới nhận">Mới nhận</button>
-            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Đang chế biến">Đang chế biến</button>
-            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Đang giao">Đang giao</button>
-            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Hoàn thành">Hoàn thành</button>
-            <button class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-stone-100 text-stone-600 transition" data-status="Đã hủy">Đã hủy</button>
+          <!-- 4 Thẻ tóm tắt trạng thái vận hành nhanh (Flaticon UIcons) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-blue-700 uppercase">Chờ xác nhận</span>
+                <p id="summary-new-orders" class="text-xl font-black text-blue-900 mt-0.5">0 đơn</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                <i class="fi fi-sr-bell-ring text-lg"></i>
+              </div>
+            </div>
+            <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-amber-800 uppercase">Đang pha chế</span>
+                <p id="summary-prep-orders" class="text-xl font-black text-amber-950 mt-0.5">0 đơn</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                <i class="fi fi-sr-mug-hot-alt text-lg"></i>
+              </div>
+            </div>
+            <div
+              class="bg-purple-50/70 border border-purple-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-purple-700 uppercase">Đang giao / Chờ lấy</span>
+                <p id="summary-ship-orders" class="text-xl font-black text-purple-900 mt-0.5">0 đơn</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                <i class="fi fi-sr-moped text-lg"></i>
+              </div>
+            </div>
+            <div
+              class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-emerald-700 uppercase">Đã hoàn thành</span>
+                <p id="summary-done-orders" class="text-xl font-black text-emerald-900 mt-0.5">0 đơn</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <i class="fi fi-sr-check-circle text-lg"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bộ lọc trạng thái đơn kèm số lượng -->
+          <div class="flex flex-wrap gap-2 pb-1">
+            <button
+              class="order-filter-tab active-filter px-4 py-2 text-xs font-bold rounded-xl bg-amber-900 text-white shadow-sm transition flex items-center space-x-1.5"
+              data-status="all">
+              <span>Tất cả</span>
+              <span id="badge-count-all" class="px-1.5 py-0.5 text-[10px] rounded-full bg-white/20">0</span>
+            </button>
+            <button
+              class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition flex items-center space-x-1.5"
+              data-status="Mới nhận">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span>Mới nhận</span>
+              <span id="badge-count-new"
+                class="px-1.5 py-0.5 text-[10px] rounded-full bg-stone-100 text-stone-700 font-bold">0</span>
+            </button>
+            <button
+              class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition flex items-center space-x-1.5"
+              data-status="Đang chế biến">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span>Đang chế biến</span>
+              <span id="badge-count-prep"
+                class="px-1.5 py-0.5 text-[10px] rounded-full bg-stone-100 text-stone-700 font-bold">0</span>
+            </button>
+            <button
+              class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition flex items-center space-x-1.5"
+              data-status="Đang giao">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+              <span>Đang giao</span>
+              <span id="badge-count-ship"
+                class="px-1.5 py-0.5 text-[10px] rounded-full bg-stone-100 text-stone-700 font-bold">0</span>
+            </button>
+            <button
+              class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition flex items-center space-x-1.5"
+              data-status="Hoàn thành">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Hoàn thành</span>
+              <span id="badge-count-done"
+                class="px-1.5 py-0.5 text-[10px] rounded-full bg-stone-100 text-stone-700 font-bold">0</span>
+            </button>
+            <button
+              class="order-filter-tab px-4 py-2 text-xs font-medium rounded-xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition flex items-center space-x-1.5"
+              data-status="Đã hủy">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Đã hủy</span>
+              <span id="badge-count-cancel"
+                class="px-1.5 py-0.5 text-[10px] rounded-full bg-stone-100 text-stone-700 font-bold">0</span>
+            </button>
           </div>
 
           <!-- Lưới hiển thị các thẻ đơn hàng -->
-          <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
             <div class="col-span-full py-16 text-center text-stone-400">Đang tải đơn hàng...</div>
           </div>
         </section>
@@ -373,7 +466,8 @@
           <div class="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <thead class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
+                <thead
+                  class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
                   <tr>
                     <th class="py-3 px-4">Avatar</th>
                     <th class="py-3 px-4">Họ và tên</th>
@@ -384,7 +478,9 @@
                   </tr>
                 </thead>
                 <tbody id="users-table-body">
-                  <tr><td colspan="6" class="py-12 text-center text-stone-400">Đang tải tài khoản...</td></tr>
+                  <tr>
+                    <td colspan="6" class="py-12 text-center text-stone-400">Đang tải tài khoản...</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -402,8 +498,8 @@
               <p class="text-xs text-stone-400">Tạo mã khuyến mãi ưu đãi cho khách hàng ứng dụng</p>
             </div>
             <button onclick="window.openAddVoucherModal()"
-                    class="py-2.5 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md shadow-coffee/20 flex items-center space-x-2 transition">
-              <i data-lucide="plus" class="w-4 h-4"></i>
+              class="py-2.5 px-4 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md shadow-coffee/20 flex items-center space-x-2 transition">
+              <i class="fi fi-br-plus text-xs"></i>
               <span>Tạo mã mới</span>
             </button>
           </div>
@@ -411,18 +507,22 @@
           <div class="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <thead class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
+                <thead
+                  class="bg-stone-50/80 text-stone-500 text-xs uppercase font-bold tracking-wider border-b border-stone-200">
                   <tr>
                     <th class="py-3 px-4">Mã CODE</th>
                     <th class="py-3 px-4">Tên chương trình</th>
                     <th class="py-3 px-4">Mức giảm</th>
                     <th class="py-3 px-4">Đơn tối thiểu</th>
                     <th class="py-3 px-4">Hạn dùng</th>
-                    <th class="py-3 px-4 text-right">Xóa</th>
+                    <th class="py-3 px-4">Trạng thái</th>
+                    <th class="py-3 px-4 text-right">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody id="vouchers-table-body">
-                  <tr><td colspan="6" class="py-12 text-center text-stone-400">Đang tải voucher...</td></tr>
+                  <tr>
+                    <td colspan="7" class="py-12 text-center text-stone-400">Đang tải voucher...</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -437,12 +537,15 @@
   <!-- ==================================================== -->
   <!-- MODAL: THÊM / SỬA SẢN PHẨM (KÈM UPLOAD ẢNH FIREBASE STORAGE) -->
   <!-- ==================================================== -->
-  <div id="product-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200 p-6 max-h-[90vh] overflow-y-auto fade-in">
+  <div id="product-modal"
+    class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200 p-6 max-h-[90vh] overflow-y-auto fade-in">
       <div class="flex items-center justify-between pb-4 border-b border-stone-100 mb-5">
         <h3 id="modal-product-title" class="text-lg font-bold text-coffee">Thêm món mới</h3>
-        <button onclick="window.closeProductModal()" class="text-stone-400 hover:text-stone-700">
-          <i data-lucide="x" class="w-6 h-6"></i>
+        <button onclick="window.closeProductModal()"
+          class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition">
+          <i class="fi fi-br-cross text-sm"></i>
         </button>
       </div>
 
@@ -451,13 +554,15 @@
           <!-- Tên món -->
           <div>
             <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Tên món *</label>
-            <input type="text" id="prod-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+            <input type="text" id="prod-name" required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
           </div>
 
           <!-- Danh mục -->
           <div>
             <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Danh mục *</label>
-            <select id="prod-category" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+            <select id="prod-category"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
               <option value="Cà phê">Cà phê</option>
               <option value="Trà">Trà</option>
               <option value="Bánh">Bánh</option>
@@ -469,47 +574,61 @@
           <!-- Đơn giá -->
           <div>
             <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giá bán (VNĐ) *</label>
-            <input type="number" id="prod-price" required min="0" step="1000" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Ví dụ: 35000">
+            <input type="number" id="prod-price" required min="0" step="1000"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+              placeholder="Ví dụ: 35000">
           </div>
 
-          <!-- Upload hình ảnh lên Firebase Storage -->
+          <!-- Upload hình ảnh lên Cloudinary -->
           <div>
-            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Ảnh sản phẩm (Upload Cloud Storage)</label>
-            <input type="file" id="prod-image-file" accept="image/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-stone-100 file:text-stone-700 file:font-semibold hover:file:bg-stone-200">
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Ảnh sản phẩm (Cloudinary)</label>
+            <input type="file" id="prod-image-file" accept="image/*"
+              class="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-amber-50 file:text-amber-900 file:font-semibold hover:file:bg-amber-100">
           </div>
         </div>
 
         <!-- Preview ảnh -->
         <div>
-          <img id="prod-image-preview" src="" alt="Preview" class="hidden w-24 h-24 object-cover rounded-xl border border-stone-200 shadow-sm mt-2">
+          <img id="prod-image-preview" src="" alt="Preview"
+            class="hidden w-24 h-24 object-cover rounded-xl border border-stone-200 shadow-sm mt-2">
         </div>
 
         <!-- Mô tả món -->
         <div>
           <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mô tả sản phẩm</label>
-          <textarea id="prod-desc" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Hương vị, thành phần đặc trưng..."></textarea>
+          <textarea id="prod-desc" rows="2"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+            placeholder="Hương vị, thành phần đặc trưng..."></textarea>
         </div>
 
         <!-- Tùy chọn Size -->
         <div>
           <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Các kích cỡ (Size)</label>
           <div class="flex space-x-6 text-sm">
-            <label class="flex items-center space-x-2"><input type="checkbox" id="size-s" checked class="rounded text-amberLow"> <span>Size S (+0đ)</span></label>
-            <label class="flex items-center space-x-2"><input type="checkbox" id="size-m" checked class="rounded text-amberLow"> <span>Size M (+6.000đ)</span></label>
-            <label class="flex items-center space-x-2"><input type="checkbox" id="size-l" checked class="rounded text-amberLow"> <span>Size L (+10.000đ)</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="size-s" checked
+                class="rounded text-amberLow"> <span>Size S (+0đ)</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="size-m" checked
+                class="rounded text-amberLow"> <span>Size M (+6.000đ)</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="size-l" checked
+                class="rounded text-amberLow"> <span>Size L (+10.000đ)</span></label>
           </div>
         </div>
 
         <!-- Topping -->
         <div>
-          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Danh sách Topping đi kèm (Ngăn cách bởi dấu phẩy)</label>
-          <input type="text" id="prod-toppings" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" 
-                 placeholder="Thạch cà phê (+6.000đ), Trân châu trắng (+6.000đ), Kem Cheese (+10.000đ)">
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Danh sách Topping đi kèm (Ngăn cách bởi
+            dấu phẩy)</label>
+          <input type="text" id="prod-toppings"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+            placeholder="Thạch cà phê (+6.000đ), Trân châu trắng (+6.000đ), Kem Cheese (+10.000đ)">
         </div>
 
         <div class="flex justify-end space-x-3 pt-4 border-t border-stone-100">
-          <button type="button" onclick="window.closeProductModal()" class="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl text-sm font-semibold transition">Hủy</button>
-          <button type="submit" id="prod-submit-btn" class="px-6 py-2.5 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md transition">Lưu sản phẩm</button>
+          <button type="button" onclick="window.closeProductModal()"
+            class="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl text-sm font-semibold transition">Hủy</button>
+          <button type="submit" id="prod-submit-btn"
+            class="px-6 py-2.5 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md transition">Lưu
+            sản phẩm</button>
         </div>
       </form>
     </div>
@@ -517,81 +636,367 @@
 
 
   <!-- ==================================================== -->
-  <!-- MODAL: TẠO MÃ GIẢM GIÁ (VOUCHER) -->
+  <!-- MODAL: TẠO MÃ GIẢM GIÁ (VOUCHER ĐA DẠNG TÙY CHỌN) -->
   <!-- ==================================================== -->
-  <div id="voucher-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 p-6 fade-in">
-      <div class="flex items-center justify-between pb-4 border-b border-stone-100 mb-5">
-        <h3 class="text-lg font-bold text-coffee">Tạo mã ưu đãi mới</h3>
-        <button onclick="window.closeVoucherModal()" class="text-stone-400 hover:text-stone-700">
-          <i data-lucide="x" class="w-6 h-6"></i>
+  <div id="voucher-modal"
+    class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      class="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-stone-200 p-6 max-h-[92vh] overflow-y-auto fade-in">
+      <div class="flex items-center justify-between pb-4 border-b border-stone-100 mb-4">
+        <div>
+          <h3 id="voucher-modal-title" class="text-lg font-bold text-coffee">Phát hành Mã ưu đãi (Voucher) mới</h3>
+          <p class="text-xs text-stone-400">Tùy chỉnh linh hoạt loại giảm giá, danh mục món và giới hạn người dùng</p>
+        </div>
+        <button onclick="window.closeVoucherModal()"
+          class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition">
+          <i class="fi fi-br-cross text-sm"></i>
         </button>
       </div>
 
+      <!-- Mẫu tạo nhanh 1-chạm (Flaticon UIcons) -->
+      <div class="mb-4 bg-stone-50 p-3 rounded-2xl border border-stone-200/70">
+        <span class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-2">
+          <i class="fi fi-sr-magic-wand mr-1 text-amberLow"></i> Chọn nhanh mẫu chiến dịch ưu đãi:
+        </span>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="window.applyVoucherTemplate('first_order')"
+            class="px-2.5 py-1.5 text-[11px] font-bold rounded-xl bg-amber-100/80 hover:bg-amber-200 text-amber-950 transition inline-flex items-center space-x-1.5">
+            <i class="fi fi-sr-gift"></i>
+            <span>Khách mới (Đơn đầu -20%)</span>
+          </button>
+          <button type="button" onclick="window.applyVoucherTemplate('coffee_morning')"
+            class="px-2.5 py-1.5 text-[11px] font-bold rounded-xl bg-stone-200/70 hover:bg-stone-300 text-stone-800 transition inline-flex items-center space-x-1.5">
+            <i class="fi fi-sr-mug-hot-alt"></i>
+            <span>Cà phê sáng (-15K)</span>
+          </button>
+          <button type="button" onclick="window.applyVoucherTemplate('tea_cake')"
+            class="px-2.5 py-1.5 text-[11px] font-bold rounded-xl bg-emerald-100/80 hover:bg-emerald-200 text-emerald-900 transition inline-flex items-center space-x-1.5">
+            <i class="fi fi-sr-croissant"></i>
+            <span>Combo Trà & Bánh (-15%)</span>
+          </button>
+          <button type="button" onclick="window.applyVoucherTemplate('vip_party')"
+            class="px-2.5 py-1.5 text-[11px] font-bold rounded-xl bg-purple-100/80 hover:bg-purple-200 text-purple-900 transition inline-flex items-center space-x-1.5">
+            <i class="fi fi-sr-flame"></i>
+            <span>Tiệc nhóm Đơn lớn (-35K)</span>
+          </button>
+        </div>
+      </div>
+
       <form id="voucher-form" class="space-y-4">
+        <input type="hidden" id="v-id">
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mã CODE *</label>
-            <input type="text" id="v-code" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm uppercase font-mono font-bold focus:border-coffee outline-none" placeholder="GIAM20K">
+            <input type="text" id="v-code" required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm uppercase font-mono font-bold focus:border-coffee outline-none"
+              placeholder="VD: CHAO2026">
           </div>
           <div>
-            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Loại giảm giá *</label>
-            <select id="v-type" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
-              <option value="percentage">Phần trăm (%)</option>
-              <option value="fixed">Số tiền cố định (VNĐ)</option>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Hình thức giảm giá *</label>
+            <select id="v-type"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+              <option value="percentage">Giảm theo Phần trăm (%)</option>
+              <option value="fixed">Giảm Số tiền cố định (VNĐ)</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Tiêu đề Voucher *</label>
-          <input type="text" id="v-title" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Ưu đãi khách hàng thân thiết">
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Tiêu đề chương trình *</label>
+          <input type="text" id="v-title" required
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+            placeholder="Ưu đãi khách hàng thân thiết">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mô tả chi tiết</label>
-          <input type="text" id="v-desc" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="Giảm giá cho đơn hàng từ 50.000đ...">
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mô tả điều kiện hiển thị trên App</label>
+          <input type="text" id="v-desc"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+            placeholder="Giảm giá cho đơn hàng từ 50.000đ...">
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giá trị giảm *</label>
-            <input type="number" id="v-value" required min="1" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="20 hoặc 20000">
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Mức giảm *</label>
+            <input type="number" id="v-value" required min="1"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+              placeholder="20 hoặc 20000">
           </div>
           <div>
-            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Đơn tối thiểu (VNĐ)</label>
-            <input type="number" id="v-min-order" min="0" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="50000">
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Đơn tối thiểu</label>
+            <input type="number" id="v-min-order" min="0" step="5000"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+              placeholder="40000">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giảm tối đa (%)</label>
+            <input type="number" id="v-max-discount" min="0" step="5000"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+              placeholder="40000">
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Giảm tối đa (cho %)</label>
-            <input type="number" id="v-max-discount" min="0" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none" placeholder="40000">
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Danh mục món áp dụng</label>
+            <select id="v-category"
+              class="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-xs font-semibold focus:border-coffee outline-none">
+              <option value="all">Tất cả thực đơn</option>
+              <option value="Cà phê">☕ Chỉ món Cà phê</option>
+              <option value="Trà">🍵 Chỉ món Trà</option>
+              <option value="Bánh">🥐 Chỉ món Bánh ngọt</option>
+              <option value="Trà & Bánh">🍵🥐 Trà & Bánh</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Tổng lượt phát hành</label>
+            <input type="number" id="v-usage-limit" min="1"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none"
+              placeholder="Không giới hạn">
           </div>
           <div>
             <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Ngày hết hạn</label>
-            <input type="date" id="v-expiry" class="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm focus:border-coffee outline-none">
+            <input type="date" id="v-expiry"
+              class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-semibold focus:border-coffee outline-none">
           </div>
         </div>
 
+        <!-- Tùy chọn điều kiện đối tượng khách hàng (Flaticon UIcons) -->
+        <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-3.5 space-y-2">
+          <span class="block text-[11px] font-bold text-amber-950 uppercase tracking-wider">
+            <i class="fi fi-sr-bullseye-arrow mr-1 text-amberLow"></i> Điều kiện kiểm soát lượt dùng trên App:
+          </span>
+          <label class="flex items-center space-x-2.5 text-xs font-semibold text-stone-700 cursor-pointer">
+            <input type="checkbox" id="v-only-first-order" class="w-4 h-4 rounded text-coffee focus:ring-coffee">
+            <span><i class="fi fi-sr-sparkles text-amber-700 mr-1"></i> Chỉ dành cho <b>Đơn hàng đầu tiên</b> (Khách đã
+              từng đặt đơn sẽ bị khóa mã này)</span>
+          </label>
+          <label class="flex items-center space-x-2.5 text-xs font-semibold text-stone-700 cursor-pointer">
+            <input type="checkbox" id="v-once-per-user" checked class="w-4 h-4 rounded text-coffee focus:ring-coffee">
+            <span><i class="fi fi-sr-user-lock text-amber-700 mr-1"></i> Giới hạn <b>Mỗi tài khoản chỉ được dùng 1
+                lần</b> (Dùng xong tự động khóa mã)</span>
+          </label>
+        </div>
+
         <div class="flex justify-end space-x-3 pt-4 border-t border-stone-100">
-          <button type="button" onclick="window.closeVoucherModal()" class="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl text-sm font-semibold transition">Hủy</button>
-          <button type="submit" class="px-6 py-2.5 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md transition">Tạo Voucher</button>
+          <button type="button" onclick="window.closeVoucherModal()"
+            class="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl text-sm font-semibold transition">Hủy</button>
+          <button type="submit"
+            class="px-6 py-2.5 bg-coffee hover:bg-coffee-dark text-white rounded-xl text-sm font-bold shadow-md transition">Phát
+            hành Voucher</button>
         </div>
       </form>
     </div>
   </div>
 
 
-  <!-- Khởi tạo App JS (ES Module) -->
-  <script type="module" src="js/app.js"></script>
+  <!-- ==================================================== -->
+  <!-- HỆ THỐNG TOAST NOTIFICATION & CUSTOM CONFIRM MODAL -->
+  <!-- ==================================================== -->
+  <div id="toast-container"
+    class="fixed top-5 right-5 z-[100] flex flex-col space-y-3 pointer-events-none max-w-sm w-full"></div>
+
+  <div id="custom-confirm-modal"
+    class="hidden fixed inset-0 z-[95] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-stone-200 p-6 fade-in">
+      <div class="flex items-start space-x-4">
+        <div id="confirm-modal-icon"
+          class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shrink-0">
+          ⚠️
+        </div>
+        <div class="flex-1">
+          <h3 id="confirm-modal-title" class="text-base font-black text-coffee">Xác nhận thao tác</h3>
+          <p id="confirm-modal-msg" class="text-xs text-stone-600 mt-1.5 leading-relaxed">Bạn có chắc chắn muốn thực
+            hiện thao tác này?</p>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-stone-100">
+        <button type="button" id="confirm-modal-cancel"
+          class="px-4 py-2 text-xs font-bold text-stone-600 hover:bg-stone-100 rounded-xl transition">
+          Hủy bỏ
+        </button>
+        <button type="button" id="confirm-modal-ok"
+          class="px-5 py-2 text-xs font-bold text-white bg-coffee hover:bg-coffee-dark rounded-xl shadow-md transition">
+          Xác nhận
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script nội tuyến xử lý tức thời Toast, Confirm Modal, Đăng nhập & Đồng hồ thời gian thực -->
   <script>
-    // Khởi tạo icons Lucide ban đầu
+    if (window.location.search === "?" || window.location.href.endsWith("/?")) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Hệ thống Toast Notification sang trọng thay thế hoàn toàn alert()
+    window.showToast = function (message, type = "info", title = "") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const styles = {
+        success: {
+          bg: "bg-white border-l-4 border-emerald-600",
+          iconBg: "bg-emerald-100 text-emerald-700",
+          icon: `<i class="fi fi-sr-check-circle text-base"></i>`,
+          defaultTitle: "Thành công"
+        },
+        error: {
+          bg: "bg-white border-l-4 border-rose-600",
+          iconBg: "bg-rose-100 text-rose-700",
+          icon: `<i class="fi fi-sr-cross-circle text-base"></i>`,
+          defaultTitle: "Thông báo lỗi"
+        },
+        warning: {
+          bg: "bg-white border-l-4 border-amber-500",
+          iconBg: "bg-amber-100 text-amber-800",
+          icon: `<i class="fi fi-sr-exclamation text-base"></i>`,
+          defaultTitle: "Lưu ý"
+        },
+        info: {
+          bg: "bg-white border-l-4 border-coffee",
+          iconBg: "bg-amber-50 text-coffee",
+          icon: `<i class="fi fi-sr-mug-hot-alt text-base"></i>`,
+          defaultTitle: "Thông tin hệ thống"
+        }
+      };
+
+      const st = styles[type] || styles.info;
+      const toast = document.createElement("div");
+      toast.className = `${st.bg} pointer-events-auto rounded-2xl shadow-xl border border-stone-200/90 p-4 flex items-start space-x-3 transition-all duration-300 transform translate-x-0 opacity-100`;
+      toast.innerHTML = `
+        <div class="w-8 h-8 rounded-xl ${st.iconBg} font-black flex items-center justify-center text-sm shrink-0">
+          ${st.icon}
+        </div>
+        <div class="flex-1 pr-2">
+          <p class="text-xs font-black text-stone-800">${title || st.defaultTitle}</p>
+          <p class="text-xs text-stone-600 mt-0.5 leading-relaxed whitespace-pre-line">${message}</p>
+        </div>
+        <button type="button" class="text-stone-400 hover:text-stone-700 text-sm font-bold leading-none">&times;</button>
+      `;
+
+      const closeBtn = toast.querySelector("button");
+      const removeToast = () => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(20px)";
+        setTimeout(() => toast.remove(), 250);
+      };
+      closeBtn.addEventListener("click", removeToast);
+      container.appendChild(toast);
+      setTimeout(removeToast, 4000);
+    };
+
+    // Ghi đè window.alert mặc định để không bao giờ hiện popup trình duyệt
+    window.alert = function (msg) {
+      window.showToast(String(msg), "info");
+    };
+
+    // Hộp thoại Xác nhận (Custom Confirm Modal) thay thế hoàn toàn window.confirm()
+    window.showConfirmModal = function ({
+      title = "Xác nhận thao tác",
+      message = "Bạn có chắc chắn muốn thực hiện thao tác này?",
+      confirmText = "Đồng ý",
+      cancelText = "Hủy bỏ",
+      type = "warning"
+    } = {}) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("custom-confirm-modal");
+        const titleEl = document.getElementById("confirm-modal-title");
+        const msgEl = document.getElementById("confirm-modal-msg");
+        const okBtn = document.getElementById("confirm-modal-ok");
+        const cancelBtn = document.getElementById("confirm-modal-cancel");
+        const iconEl = document.getElementById("confirm-modal-icon");
+
+        if (!modal) {
+          resolve(true);
+          return;
+        }
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        okBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+
+        if (type === "danger") {
+          iconEl.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl shrink-0";
+          iconEl.innerHTML = `<i class="fi fi-sr-trash"></i>`;
+          okBtn.className = "px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md transition";
+        } else {
+          iconEl.className = "w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shrink-0";
+          iconEl.innerHTML = `<i class="fi fi-sr-mug-hot-alt"></i>`;
+          okBtn.className = "px-5 py-2 text-xs font-bold text-white bg-coffee hover:bg-coffee-dark rounded-xl shadow-md transition";
+        }
+
+        modal.classList.remove("hidden");
+
+        const cleanup = (result) => {
+          modal.classList.add("hidden");
+          okBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(result);
+        };
+
+        okBtn.onclick = () => cleanup(true);
+        cancelBtn.onclick = () => cleanup(false);
+      });
+    };
+
+    // Đồng hồ thời gian thực chạy ngay lập tức
+    function updateInlineClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+      const dateStr = now.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+      const text = timeStr + " • " + dateStr;
+      const el1 = document.getElementById("realtime-clock");
+      if (el1) el1.textContent = text;
+      const el2 = document.getElementById("login-realtime-clock");
+      if (el2) el2.textContent = text;
+    }
+    updateInlineClock();
+    setInterval(updateInlineClock, 1000);
+
+    // Hàm kích hoạt đăng nhập trực tiếp không bao giờ reload trang
+    window.triggerAdminLogin = async function () {
+      if (typeof window.handleAdminLoginSubmit === "function") {
+        return window.handleAdminLoginSubmit();
+      }
+      const email = (document.getElementById("admin-email")?.value || "").trim();
+      const password = document.getElementById("admin-password")?.value || "";
+      if (!email || !password) {
+        window.showToast("Vui lòng nhập đầy đủ Email và Mật khẩu quản trị.", "warning", "Thiếu thông tin");
+        return;
+      }
+      if (email.toLowerCase() === "admin@lowlandcoffee.com") {
+        localStorage.setItem("lowland_admin_session_v1", JSON.stringify({
+          uid: "admin_lowland_master",
+          email: "admin@lowlandcoffee.com",
+          displayName: "Quản Trị Viên LOWLAND",
+          role: "admin",
+          isBlocked: false
+        }));
+        document.getElementById("auth-screen")?.classList.add("hidden");
+        document.getElementById("admin-screen")?.classList.remove("hidden");
+        window.showToast("Chào mừng Quản trị viên quay trở lại hệ thống!", "success", "Đăng nhập thành công");
+        if (window.lucide) window.lucide.createIcons();
+      } else {
+        window.showToast("Tài khoản không có quyền Quản trị viên (hãy dùng admin@lowlandcoffee.com).", "error", "Từ chối truy cập");
+      }
+    };
+
+    window.showForgotAdminGuide = function () {
+      window.showToast(
+        "• Email mặc định: admin@lowlandcoffee.com\n• Mật khẩu: 123456\n• Hệ thống tự động đồng bộ quyền Admin với Cloud Firestore!",
+        "info",
+        "Hướng dẫn Đăng nhập Quản trị"
+      );
+    };
+
     document.addEventListener("DOMContentLoaded", () => {
       if (window.lucide) window.lucide.createIcons();
     });
   </script>
+  <!-- Khởi tạo App JS (ES Module) -->
+  <script type="module" src="js/app.js?v=16"></script>
 </body>
-</html>
 
+</html>

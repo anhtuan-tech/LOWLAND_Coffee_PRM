@@ -18,12 +18,7 @@ class ProductModel {
     required this.imageUrl,
     required this.description,
     this.availableSizes = const ['S', 'M', 'L'],
-    this.availableToppings = const [
-      'Thạch cà phê (+6.000đ)',
-      'Trân châu trắng (+6.000đ)',
-      'Kem Cheese (+10.000đ)',
-      'Shot Espresso (+10.000đ)',
-    ],
+    this.availableToppings = const [],
     this.isAvailable = true,
   });
 
@@ -42,25 +37,27 @@ class ProductModel {
   }
 
   factory ProductModel.fromMap(Map<String, dynamic> map, [String? docId]) {
+    final category = map['category']?.toString() ?? 'Cà phê';
+    final rawSizes = (map['availableSizes'] as List<dynamic>?)
+        ?.map((e) => e.toString().trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    final rawToppings = (map['availableToppings'] as List<dynamic>?)
+        ?.map((e) => e.toString().trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
     return ProductModel(
       id: docId ?? map['id']?.toString() ?? '',
       name: map['name'] ?? '',
-      category: map['category'] ?? 'Cà phê',
+      category: category,
       price: (map['price'] as num?)?.toDouble() ?? 0.0,
       imageUrl: map['imageUrl'] ?? '',
       description: map['description'] ?? '',
-      availableSizes: (map['availableSizes'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const ['S', 'M', 'L'],
-      availableToppings: (map['availableToppings'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [
-            'Thạch cà phê (+6.000đ)',
-            'Trân châu trắng (+6.000đ)',
-            'Kem Cheese (+10.000đ)',
-          ],
+      availableSizes: (rawSizes != null && rawSizes.isNotEmpty)
+          ? rawSizes
+          : (category == 'Bánh' ? const ['M'] : const ['S', 'M', 'L']),
+      availableToppings: rawToppings ?? const [],
       isAvailable: map['isAvailable'] ?? true,
     );
   }
