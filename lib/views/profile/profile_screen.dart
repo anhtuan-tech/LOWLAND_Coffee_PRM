@@ -8,6 +8,7 @@ import '../../core/utils/auth_guard.dart';
 import '../../core/utils/local_image_picker.dart';
 import '../../data/models/user_model.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/order_history_viewmodel.dart';
 import '../../widgets/custom_button.dart';
 
 /// Màn hình Tài khoản & Hồ sơ người dùng (Hỗ trợ đổi Ảnh đại diện chọn từ máy tính/điện thoại)
@@ -435,6 +436,8 @@ class ProfileScreen extends StatelessWidget {
               subtitle: 'Xem lại các đơn cà phê đã đặt',
               onTap: () {
                 if (AuthGuard.checkAuth(context, actionMessage: 'xem lịch sử đơn hàng')) {
+                  final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+                  context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
                   Navigator.pushNamed(context, AppRoutes.orderHistory);
                 }
               },

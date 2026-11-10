@@ -129,7 +129,8 @@ class _CartScreenState extends State<CartScreen> {
           orderNote: note,
         );
         if (success && context.mounted) {
-          context.read<OrderHistoryViewModel>().loadOrders();
+          final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+          context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
           _showOrderSuccessDialog(context, 'Thanh toán qua VNPAY Sandbox thành công!');
         }
       }
@@ -193,7 +194,8 @@ class _CartScreenState extends State<CartScreen> {
                   orderNote: note,
                 );
                 if (success && context.mounted) {
-                  context.read<OrderHistoryViewModel>().loadOrders();
+                  final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+                  context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
                   _showOrderSuccessDialog(context, 'Đơn hàng của bạn đã được chuyển xuống quầy Barista!');
                 }
               },

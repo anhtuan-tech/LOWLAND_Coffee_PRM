@@ -133,6 +133,13 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
+
+      // SnackBar Theme
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 6,
+      ),
     );
   }
 }

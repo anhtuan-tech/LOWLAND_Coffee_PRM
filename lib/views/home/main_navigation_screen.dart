@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/cart_viewmodel.dart';
 import '../../viewmodels/favorite_viewmodel.dart';
 import '../../viewmodels/order_history_viewmodel.dart';
@@ -54,7 +55,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           } else if (index == 2) {
             context.read<CartViewModel>().loadCart();
           } else if (index == 3) {
-            context.read<OrderHistoryViewModel>().loadOrders();
+            final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+            context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
           }
           setState(() {
             _currentIndex = index;
