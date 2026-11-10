@@ -430,12 +430,7 @@ class _ProductDetailContent extends StatelessWidget {
                         SnackBar(
                           content: Text('Đã thêm "${product.name}" (Size ${vm.selectedSize}) vào giỏ hàng!'),
                           backgroundColor: AppColors.success,
-                          duration: const Duration(seconds: 2),
-                          action: SnackBarAction(
-                            label: 'Xem giỏ',
-                            textColor: Colors.white,
-                            onPressed: () => Navigator.pushNamed(context, '/cart'),
-                          ),
+                          duration: const Duration(milliseconds: 1500),
                         ),
                       );
                       Navigator.pop(context);
