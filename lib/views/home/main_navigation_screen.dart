@@ -54,7 +54,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           } else if (index == 2) {
             context.read<CartViewModel>().loadCart();
           } else if (index == 3) {
-            context.read<OrderHistoryViewModel>().loadOrders();
+            final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+            context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
           }
           setState(() {
             _currentIndex = index;

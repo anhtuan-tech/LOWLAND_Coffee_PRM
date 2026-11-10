@@ -883,7 +883,8 @@
       };
       closeBtn.addEventListener("click", removeToast);
       container.appendChild(toast);
-      setTimeout(removeToast, 4000);
+      // Tự động biến mất sau đúng 1.5 giây (1500ms)
+      setTimeout(removeToast, 1500);
     };
 
     // Ghi đè window.alert mặc định để không bao giờ hiện popup trình duyệt

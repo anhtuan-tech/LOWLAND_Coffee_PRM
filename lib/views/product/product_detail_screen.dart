@@ -65,15 +65,15 @@ class _ProductDetailContent extends StatelessWidget {
                     await vm.toggleFavorite();
                     if (context.mounted) {
                       context.read<FavoriteViewModel>().loadFavorites();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+                        SnackBar(duration: const Duration(milliseconds: 1500), 
                           content: Text(
                             vm.isFavorite
                                 ? 'Đã thêm "${product.name}" vào danh sách yêu thích ❤️'
                                 : 'Đã bỏ yêu thích món "${product.name}"',
                           ),
                           backgroundColor: vm.isFavorite ? AppColors.accent : AppColors.primary,
-                          duration: const Duration(seconds: 1),
+                          
                         ),
                       );
                     }
@@ -178,7 +178,7 @@ class _ProductDetailContent extends StatelessWidget {
                               onTap: () => vm.setSize(size),
                               borderRadius: BorderRadius.circular(12),
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
+                                
                                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                 decoration: BoxDecoration(
                                   color: isSelected ? AppColors.primary : AppColors.surfaceCream,
@@ -426,11 +426,11 @@ class _ProductDetailContent extends StatelessWidget {
                     final success = await vm.addToCart();
                     if (success && context.mounted) {
                       context.read<CartViewModel>().loadCart();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+                        SnackBar(duration: const Duration(milliseconds: 1500), 
                           content: Text('Đã thêm "${product.name}" (Size ${vm.selectedSize}) vào giỏ hàng!'),
                           backgroundColor: AppColors.success,
-                          duration: const Duration(seconds: 2),
+                          
                           action: SnackBarAction(
                             label: 'Xem giỏ',
                             textColor: Colors.white,

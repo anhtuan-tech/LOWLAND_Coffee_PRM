@@ -35,8 +35,8 @@ class _StoreInfoScreenState extends State<StoreInfoScreen> {
       await launchUrl(uri);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể gọi đến hotline: ${_store.hotline}')),
+        ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+          SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Không thể gọi đến hotline: ${_store.hotline}')),
         );
       }
     }
@@ -51,8 +51,8 @@ class _StoreInfoScreenState extends State<StoreInfoScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không thể mở ứng dụng chỉ đường.')),
+        ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+          const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Không thể mở ứng dụng chỉ đường.')),
         );
       }
     }
@@ -61,9 +61,8 @@ class _StoreInfoScreenState extends State<StoreInfoScreen> {
   /// Sao chép mật khẩu Wifi vào bộ nhớ tạm
   void _copyWifiPassword() {
     Clipboard.setData(ClipboardData(text: _store.wifiPassword));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Đã sao chép mật khẩu Wifi vào bộ nhớ tạm!'),
+    ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+      const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Đã sao chép mật khẩu Wifi vào bộ nhớ tạm!'),
         backgroundColor: AppColors.success,
       ),
     );

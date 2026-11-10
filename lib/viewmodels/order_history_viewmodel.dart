@@ -15,7 +15,7 @@ class OrderHistoryViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   OrderHistoryViewModel() {
-    loadOrders();
+    // Không nạp all orders khi chưa biết userId
   }
 
   Future<void> loadOrders({String? userId}) async {
@@ -23,12 +23,19 @@ class OrderHistoryViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Tải từ bộ nhớ cục bộ (SQLite / LocalStorage) trước để hiển thị tức thì
+      if (userId == null || userId.isEmpty) {
+        _orders = [];
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      // 1. Tải từ bộ nhớ cục bộ (SQLite / LocalStorage) theo đúng userId
       final localOrders = await _dbHelper.getOrderHistory(userId: userId);
       _orders = localOrders;
       notifyListeners();
 
-      // 2. Đồng bộ thêm các đơn hàng từ Cloud Firestore (cập nhật trạng thái mới nhất từ Web Admin & khôi phục đơn cũ)
+      // 2. Đồng bộ thêm các đơn hàng từ Cloud Firestore đúng của userId
       final remoteOrders = await _firestoreService.getOrdersFromFirestore(userId: userId);
       if (remoteOrders.isNotEmpty) {
         final Map<String, OrderModel> mergedMap = {
@@ -39,7 +46,7 @@ class OrderHistoryViewModel extends ChangeNotifier {
           // Lưu ngược lại xuống Local để lần sau mở offline vẫn có
           await _dbHelper.insertOrder(remoteOrder);
         }
-        final mergedList = mergedMap.values.toList();
+        final mergedList = mergedMap.values.where((o) => o.userId == userId).toList();
         mergedList.sort((a, b) => b.orderDate.compareTo(a.orderDate));
         _orders = mergedList;
       }
@@ -52,11 +59,11 @@ class OrderHistoryViewModel extends ChangeNotifier {
   }
 
   /// Hủy đơn hàng khi đơn đang ở trạng thái 'Mới nhận' (chưa pha chế)
-  Future<bool> cancelOrder(String orderId) async {
+  Future<bool> cancelOrder(String orderId, {String? userId}) async {
     try {
       await _dbHelper.updateOrderStatus(orderId, 'Đã hủy');
       await _firestoreService.updateOrderStatusInFirestore(orderId, 'Đã hủy');
-      await loadOrders();
+      await loadOrders(userId: userId);
       return true;
     } catch (_) {
       return false;

@@ -25,7 +25,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<OrderHistoryViewModel>().loadOrders();
+        final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+        context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
       }
     });
   }
@@ -144,10 +145,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () async {
               Navigator.pop(ctx);
-              final ok = await orderVM.cancelOrder(order.orderId);
+              final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+              final ok = await orderVM.cancelOrder(order.orderId, userId: currentUid);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+                  SnackBar(duration: const Duration(milliseconds: 1500), 
                     content: Text(ok ? 'Đã hủy đơn hàng ${order.orderId}' : 'Lỗi khi hủy đơn'),
                     backgroundColor: ok ? AppColors.primary : AppColors.error,
                   ),
@@ -226,12 +228,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Cập nhật trạng thái đơn mới nhất',
-            onPressed: () => orderVM.loadOrders(),
+            onPressed: () {
+              final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+              orderVM.loadOrders(userId: currentUid);
+            },
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => orderVM.loadOrders(),
+        onRefresh: () async {
+          final currentUid = context.read<AuthViewModel>().currentUser?.uid;
+          await orderVM.loadOrders(userId: currentUid);
+        },
         child: orderVM.orders.isEmpty
             ? ListView(
                 children: [

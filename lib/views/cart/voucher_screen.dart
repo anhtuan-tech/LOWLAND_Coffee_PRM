@@ -37,16 +37,16 @@ class _VoucherScreenState extends State<VoucherScreen> {
     final code = _codeController.text.trim();
     final err = cartVM.applyVoucherByCode(code);
     if (err != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+        SnackBar(duration: const Duration(milliseconds: 1500), 
           content: Text(err),
           backgroundColor: AppColors.error,
         ),
       );
     } else {
       _codeController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+        SnackBar(duration: const Duration(milliseconds: 1500), 
           content: Text('Đã áp dụng mã ưu đãi "${code.toUpperCase()}" thành công! 🎉'),
           backgroundColor: AppColors.success,
         ),
@@ -403,15 +403,15 @@ class _VoucherScreenState extends State<VoucherScreen> {
                                                     if (Navigator.canPop(context)) {
                                                       Navigator.pop(context);
                                                     }
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(
+                                                    ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+                                                      SnackBar(duration: const Duration(milliseconds: 1500), 
                                                         content: Text('Đã áp dụng mã "${voucher.code}"!'),
                                                         backgroundColor: AppColors.success,
                                                       ),
                                                     );
                                                   } else if (cartVM.message != null) {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(
+                                                    ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+                                                      SnackBar(duration: const Duration(milliseconds: 1500), 
                                                         content: Text(cartVM.message!),
                                                         backgroundColor: AppColors.error,
                                                       ),
@@ -419,8 +419,8 @@ class _VoucherScreenState extends State<VoucherScreen> {
                                                   }
                                                 }
                                               : () {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
+                                                  ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
+                                                    SnackBar(duration: const Duration(milliseconds: 1500), 
                                                       content: Text(statusMsg),
                                                       backgroundColor: AppColors.error,
                                                     ),
