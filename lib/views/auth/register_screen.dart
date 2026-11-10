@@ -37,8 +37,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (_formKey.currentState?.validate() ?? false) {
       if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-          const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Mật khẩu nhập lại không trùng khớp!')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mật khẩu nhập lại không trùng khớp!')),
         );
         return;
       }
@@ -50,8 +50,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-          const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Đăng ký tài khoản LOWLAND Coffee thành công!'),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký tài khoản LOWLAND Coffee thành công!'),
             backgroundColor: AppColors.success,
           ),
         );

@@ -92,8 +92,9 @@ class _CartScreenState extends State<CartScreen> {
 
     // Kiểm tra Validate SĐT & Địa chỉ giao hàng trước khi cho phép thanh toán
     if (!(_checkoutFormKey.currentState?.validate() ?? false)) {
-      ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-        const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Vui lòng kiểm tra lại Số điện thoại và Địa chỉ nhận món!'),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng kiểm tra lại Số điện thoại và Địa chỉ nhận món!'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -128,8 +129,7 @@ class _CartScreenState extends State<CartScreen> {
           orderNote: note,
         );
         if (success && context.mounted) {
-          final currentUid = context.read<AuthViewModel>().currentUser?.uid;
-          context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
+          context.read<OrderHistoryViewModel>().loadOrders();
           _showOrderSuccessDialog(context, 'Thanh toán qua VNPAY Sandbox thành công!');
         }
       }
@@ -193,8 +193,7 @@ class _CartScreenState extends State<CartScreen> {
                   orderNote: note,
                 );
                 if (success && context.mounted) {
-                  final currentUid = context.read<AuthViewModel>().currentUser?.uid;
-                  context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
+                  context.read<OrderHistoryViewModel>().loadOrders();
                   _showOrderSuccessDialog(context, 'Đơn hàng của bạn đã được chuyển xuống quầy Barista!');
                 }
               },
@@ -826,7 +825,7 @@ class _CartScreenState extends State<CartScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
-        
+        duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.surfaceCream,

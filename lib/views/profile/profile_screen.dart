@@ -21,8 +21,8 @@ class ProfileScreen extends StatelessWidget {
       return await LocalImagePicker.pickLocalImagePreview();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-          SnackBar(duration: const Duration(milliseconds: 1500), 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text('Không thể đọc file ảnh: $e'),
             backgroundColor: AppColors.error,
           ),
@@ -251,8 +251,9 @@ class ProfileScreen extends StatelessWidget {
                           final newName = nameController.text.trim();
                           final newPhone = phoneController.text.trim();
                           if (newName.length < 2) {
-                            ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-                              const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Họ và tên phải có ít nhất 2 ký tự!'),
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Họ và tên phải có ít nhất 2 ký tự!'),
                                 backgroundColor: AppColors.error,
                               ),
                             );
@@ -260,8 +261,9 @@ class ProfileScreen extends StatelessWidget {
                           }
                           if (newPhone.isNotEmpty &&
                               !RegExp(r'^(0[3|5|7|8|9])+([0-9]{8})$').hasMatch(newPhone)) {
-                            ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-                              const SnackBar(duration: const Duration(milliseconds: 1500), content: Text('Số điện thoại không hợp lệ (Gồm 10 số, bắt đầu bằng 03, 05, 07, 08, 09)!'),
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Số điện thoại không hợp lệ (Gồm 10 số, bắt đầu bằng 03, 05, 07, 08, 09)!'),
                                 backgroundColor: AppColors.error,
                               ),
                             );
@@ -275,8 +277,8 @@ class ProfileScreen extends StatelessWidget {
                               );
                           if (ctx.mounted) Navigator.pop(ctx);
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(duration: const Duration(milliseconds: 1500), 
-                              SnackBar(duration: const Duration(milliseconds: 1500), 
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
                                 content: Text(
                                   success
                                       ? 'Cập nhật hồ sơ & ảnh đại diện thành công! 🎉'
@@ -433,8 +435,6 @@ class ProfileScreen extends StatelessWidget {
               subtitle: 'Xem lại các đơn cà phê đã đặt',
               onTap: () {
                 if (AuthGuard.checkAuth(context, actionMessage: 'xem lịch sử đơn hàng')) {
-                  final currentUid = context.read<AuthViewModel>().currentUser?.uid;
-                  context.read<OrderHistoryViewModel>().loadOrders(userId: currentUid);
                   Navigator.pushNamed(context, AppRoutes.orderHistory);
                 }
               },

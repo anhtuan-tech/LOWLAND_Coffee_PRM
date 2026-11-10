@@ -133,13 +133,6 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
-
-      // SnackBar Theme: Tự động biến mất sau đúng 1.5 giây (1500ms)
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        elevation: 6,
-      ),
     );
   }
 }
